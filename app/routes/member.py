@@ -4,7 +4,8 @@ from ..extensions import db
 from ..models import (
     TeeTime, GeneralBooking, BookingPlayer,
     Competition, CompetitionTeeTime, CompetitionBooking,
-    Coach, CoachingTime, CoachingBooking
+    Coach, CoachingTime, CoachingBooking,
+    RangeTime, RangeBooking
 )
 from datetime import date, datetime, timedelta
 
@@ -40,12 +41,20 @@ def dashboard():
         CoachingBooking.member_id == current_user.id,
         CoachingTime.date >= today
     ).order_by(CoachingTime.date, CoachingTime.time).all()
+    
+    upcoming_range_bookings = RangeBooking.query.join(
+        RangeTime
+    ).filter(
+        RangeBooking.member_id == current_user.id,
+        RangeTime.date >= today
+    ).order_by(RangeTime.date, RangeTime.time).all()
 
     return render_template(
         'member/dashboard.html',
         upcoming_bookings=upcoming_bookings,
         upcoming_comp_bookings=upcoming_comp_bookings,
-        upcoming_coaching=upcoming_coaching
+        upcoming_coaching=upcoming_coaching,
+        upcoming_range_bookings=upcoming_range_bookings
     )
 
 
@@ -328,3 +337,94 @@ def cancel_competition_booking(comp_id):
         flash('No booking found to cancel.', 'warning')
     return redirect(url_for('member.dashboard'))
 
+
+@member_bp.route('/book-range', methods=['GET', 'POST'])
+def book_range():
+    """Book a range bay."""
+    selected_date_str = request.args.get('date', date.today().isoformat())
+    try:
+        selected_date = date.fromisoformat(selected_date_str)
+    except ValueError:
+        selected_date = date.today()
+        selected_date_str = selected_date.isoformat()
+
+    if request.method == 'POST':
+        range_time_id = request.form.get('range_time_id', type=int)
+        rt = RangeTime.query.get_or_404(range_time_id)
+        
+        # Don't allow booking if already booked
+        if rt.booking:
+            flash(f'Bay {rt.bay_number} at {rt.time.strftime("%H:%M")} is already booked.', 'danger')
+            return redirect(url_for('member.book_range', date=selected_date_str))
+        
+        # Prevent booking past times
+        now = datetime.now()
+        rt_dt = datetime.combine(rt.date, rt.time)
+        if rt_dt < now:
+            flash('Cannot book a time in the past.', 'danger')
+            return redirect(url_for('member.book_range', date=selected_date_str))
+
+        # Prevent concurrent bay bookings (same date, same time)
+        existing_concurrent_booking = RangeBooking.query.join(RangeTime).filter(
+            RangeBooking.member_id == current_user.id,
+            RangeTime.date == rt.date,
+            RangeTime.time == rt.time
+        ).first()
+        
+        if existing_concurrent_booking:
+            flash(f'You already have a range bay booked at {rt.time.strftime("%H:%M")}.', 'warning')
+            return redirect(url_for('member.book_range', date=selected_date_str))
+
+        booking = RangeBooking(
+            range_time_id=rt.id,
+            member_id=current_user.id
+        )
+        db.session.add(booking)
+        db.session.commit()
+        flash(f'Successfully booked Bay {rt.bay_number} for {rt.time.strftime("%H:%M")}', 'success')
+        return redirect(url_for('member.dashboard'))
+
+    # GET request
+    range_times = RangeTime.query.filter_by(date=selected_date).order_by(RangeTime.time, RangeTime.bay_number).all()
+    
+    # Filter out past times for today
+    if selected_date == date.today():
+        now_time = datetime.now().time()
+        range_times = [rt for rt in range_times if rt.time > now_time]
+
+    # Group by time for the UI matrix
+    times_dict = {}
+    for rt in range_times:
+        time_str = rt.time.strftime('%H:%M')
+        if time_str not in times_dict:
+            times_dict[time_str] = []
+        times_dict[time_str].append(rt)
+
+    # Get user's current bookings for this day to show a banner
+    user_bookings = RangeBooking.query.join(RangeTime).filter(
+        RangeBooking.member_id == current_user.id,
+        RangeTime.date == selected_date
+    ).all()
+
+    return render_template(
+        'member/book_range.html',
+        selected_date=selected_date_str,
+        today=date.today().isoformat(),
+        times_dict=times_dict,
+        user_bookings=user_bookings
+    )
+
+
+@member_bp.route('/cancel-range-booking/<int:booking_id>', methods=['POST'])
+def cancel_range_booking(booking_id):
+    """Cancel a member's own range booking from the dashboard."""
+    booking = RangeBooking.query.get_or_404(booking_id)
+    
+    if booking.member_id != current_user.id:
+        flash('Unauthorized.', 'danger')
+        return redirect(url_for('member.dashboard'))
+        
+    db.session.delete(booking)
+    db.session.commit()
+    flash('Your range booking has been cancelled.', 'success')
+    return redirect(url_for('member.dashboard'))

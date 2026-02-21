@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Book Range Bay — Adam's Golf Club{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-bullseye me-2 text-danger"></i>Book a Range Bay</h2>
+            <a href="{{ url_for('member.dashboard') }}" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+
+        {% if user_bookings %}
+        <div class="alert alert-info mb-4">
+            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Your Bookings for <span class="fw-bold">{{
+                    selected_date }}</span></h6>
+            <hr>
+            <ul class="mb-0">
+                {% for booking in user_bookings %}
+                <li>Bay {{ booking.range_time.bay_number }} at <span class="fw-bold">{{
+                        booking.range_time.time.strftime('%H:%M') }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+            <!-- Calendar Section -->
+            <div class="col-lg-4">
+                <div class="card-glass p-4 sticky-top" style="top: 100px;">
+                    <h5 class="mb-3">Select a Date</h5>
+                    <form method="GET" action="{{ url_for('member.book_range') }}">
+                        <div class="mb-4">
+                            <input type="date" class="form-control form-control-lg bg-dark text-white border-secondary"
+                                name="date" value="{{ selected_date }}" min="{{ today }}" onchange="this.form.submit()">
+                        </div>
+                    </form>
+
+                    <div class="d-flex flex-column gap-2 text-muted small mt-4">
+                        <div class="d-flex align-items-center"><i
+                                class="bi bi-circle-fill text-success me-2"></i>Available
+                        </div>
+                        <div class="d-flex align-items-center"><i
+                                class="bi bi-circle-fill text-secondary me-2"></i>Booked
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Times Matrix Section -->
+            <div class="col-lg-8">
+                {% if not times_dict %}
+                <div class="card-glass p-5 text-center">
+                    <i class="bi bi-calendar-x display-4 text-muted mb-3 d-block"></i>
+                    <h4>No Range Times Available</h4>
+                    <p class="text-muted mb-0">There are no Trackman bays available to book on this date.
+                        Please select another date from the calendar.</p>
+                </div>
+                {% else %}
+
+                {% for time_str, slots in times_dict.items() %}
+                <div class="card-glass p-3 mb-3">
+                    <h5 class="mb-3 border-bottom border-secondary pb-2">
+                        <i class="bi bi-clock me-2 text-danger"></i>{{ time_str }}
+                    </h5>
+                    <div class="row g-2">
+                        {% for slot in slots|sort(attribute='bay_number') %}
+                        <div class="col-md-4 col-sm-6">
+                            {% if slot.booking %}
+                            <!-- Booked slot -->
+                            <div class="p-2 text-center rounded bg-dark border border-secondary opacity-50 h-100">
+                                <div class="fw-bold text-muted mb-1">Bay {{ slot.bay_number }}</div>
+                                <span class="badge bg-secondary">Booked</span>
+                            </div>
+                            {% else %}
+                            <!-- Available slot -->
+                            <form method="POST" action="{{ url_for('member.book_range') }}" class="h-100"
+                                onsubmit="return confirmAction(this, 'Book Bay {{ slot.bay_number }} at {{ time_str }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="range_time_id" value="{{ slot.id }}">
+                                <input type="hidden" name="date" value="{{ selected_date }}">
+                                <button type="submit"
+                                    class="btn btn-outline-success w-100 h-100 p-2 d-flex flex-column align-items-center justify-content-center">
+                                    <div class="fw-bold mb-1">Bay {{ slot.bay_number }}</div>
+                                    <span class="small">Book Now</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

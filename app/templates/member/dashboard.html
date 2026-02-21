@@ -7,7 +7,7 @@
 
         <!-- Quick Actions -->
         <div class="row g-3 mb-5">
-            <div class="col-md-4">
+            <div class="col-lg-3 col-md-6">
                 <a href="{{ url_for('member.book_tee_time') }}" class="text-decoration-none">
                     <div class="stat-card">
                         <i class="bi bi-calendar-plus text-success fs-2 mb-2"></i>
@@ -15,7 +15,7 @@
                     </div>
                 </a>
             </div>
-            <div class="col-md-4">
+            <div class="col-lg-3 col-md-6">
                 <a href="{{ url_for('member.competitions') }}" class="text-decoration-none">
                     <div class="stat-card">
                         <i class="bi bi-trophy text-warning fs-2 mb-2"></i>
@@ -23,7 +23,15 @@
                     </div>
                 </a>
             </div>
-            <div class="col-md-4">
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('member.book_range') }}" class="text-decoration-none">
+                    <div class="stat-card">
+                        <i class="bi bi-bullseye text-danger fs-2 mb-2"></i>
+                        <div class="stat-label">Book Range Bay</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6">
                 <a href="{{ url_for('member.coaching') }}" class="text-decoration-none">
                     <div class="stat-card">
                         <i class="bi bi-mortarboard text-info fs-2 mb-2"></i>
@@ -86,8 +94,7 @@
                         </div>
                         <div class="text-muted small mt-1">
                             <i class="bi bi-calendar me-1"></i>{{ booking.comp_tee_time.competition.date.strftime('%A %d
-                            %B
-                            %Y') }}
+                            %B %Y') }}
                         </div>
                     </div>
                 </a>
@@ -98,6 +105,41 @@
         <div class="card-glass p-4 mb-5 text-center">
             <p class="text-muted mb-2">No upcoming competition bookings.</p>
             <a href="{{ url_for('member.competitions') }}" class="btn btn-gold btn-sm">View Competitions</a>
+        </div>
+        {% endif %}
+
+        <!-- Upcoming Range Bookings -->
+        <h4 class="mb-3"><i class="bi bi-bullseye me-2 text-danger"></i>Upcoming Range Bookings</h4>
+        {% if upcoming_range_bookings %}
+        <div class="row g-3 mb-5">
+            {% for booking in upcoming_range_bookings %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card-glass p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="slot-time">{{ booking.range_time.time.strftime('%H:%M') }}</div>
+                        <form method="POST" action="{{ url_for('member.cancel_range_booking', booking_id=booking.id) }}"
+                            class="d-inline"
+                            onsubmit="return confirmAction(this, 'Cancel your range bay booking for {{ booking.range_time.time.strftime('%H:%M') }}?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-outline-danger btn-sm py-0 px-1" title="Cancel booking">
+                                <i class="bi bi-x-circle small"></i>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge-agc">Bay {{ booking.range_time.bay_number }}</span>
+                    </div>
+                    <div class="text-muted small mt-2">
+                        <i class="bi bi-calendar me-1"></i>{{ booking.range_time.date.strftime('%A %d %B %Y') }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-glass p-4 mb-5 text-center">
+            <p class="text-muted mb-2">No upcoming range bay bookings.</p>
+            <a href="{{ url_for('member.book_range') }}" class="btn btn-outline-danger btn-sm">Book a Bay</a>
         </div>
         {% endif %}
 

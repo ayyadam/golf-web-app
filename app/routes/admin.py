@@ -443,6 +443,15 @@ def manage_range():
                 db.session.commit()
                 flash(f'{created} range bay times generated for {gen_date.strftime("%d/%m/%Y")}.', 'success')
             return redirect(url_for('admin.manage_range', date=gen_date_str))
+
+        elif action == 'cancel_booking':
+            booking_id = request.form.get('booking_id', type=int)
+            date_str = request.form.get('date', date.today().isoformat())
+            booking = RangeBooking.query.get_or_404(booking_id)
+            db.session.delete(booking)
+            db.session.commit()
+            flash('Range bay booking cancelled successfully.', 'success')
+            return redirect(url_for('admin.manage_range', date=date_str))
             
         else:
             range_time = RangeTime(
