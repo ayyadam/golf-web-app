@@ -163,6 +163,22 @@ def manage_members():
     return render_template('admin/members.html', members=members)
 
 
+@admin_bp.route('/members/<int:member_id>/delete', methods=['POST'])
+def delete_member(member_id):
+    """Delete a member from the system."""
+    member = Member.query.get_or_404(member_id)
+    
+    # Prevent admin from deleting themselves
+    if member.id == current_user.id:
+        flash('You cannot delete your own account.', 'danger')
+        return redirect(url_for('admin.manage_members'))
+        
+    db.session.delete(member)
+    db.session.commit()
+    flash(f'{member.full_name} has been permanently removed.', 'success')
+    return redirect(url_for('admin.manage_members'))
+
+
 @admin_bp.route('/members/<int:member_id>/edit', methods=['GET', 'POST'])
 def edit_member(member_id):
     """Edit an existing member."""

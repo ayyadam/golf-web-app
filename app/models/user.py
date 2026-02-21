@@ -30,16 +30,16 @@ class Member(UserMixin, db.Model):
 
     # Relationships
     general_bookings = db.relationship(
-        'GeneralBooking', backref='member', lazy='dynamic'
+        'GeneralBooking', backref='member', lazy='dynamic', cascade="all, delete-orphan"
     )
     competition_bookings = db.relationship(
-        'CompetitionBooking', backref='member', lazy='dynamic'
+        'CompetitionBooking', backref='member', lazy='dynamic', cascade="all, delete-orphan"
     )
     range_bookings = db.relationship(
-        'RangeBooking', backref='member', lazy='dynamic'
+        'RangeBooking', backref='member', lazy='dynamic', cascade="all, delete-orphan"
     )
     coaching_bookings = db.relationship(
-        'CoachingBooking', backref='member', lazy='dynamic'
+        'CoachingBooking', backref='member', lazy='dynamic', cascade="all, delete-orphan"
     )
 
     def set_password(self, password):

@@ -79,8 +79,24 @@
                                 class="bi bi-x-circle text-muted"></i>{% endif %}</td>
                         <td>{% if member.is_active %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i
                                 class="bi bi-x-circle text-danger"></i>{% endif %}</td>
-                        <td><a href="{{ url_for('admin.edit_member', member_id=member.id) }}"
-                                class="btn btn-outline-success btn-sm"><i class="bi bi-pencil"></i></a></td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('admin.edit_member', member_id=member.id) }}"
+                                    class="btn btn-outline-success btn-sm" title="Edit member">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if member.id != current_user.id %}
+                                <form method="POST" action="{{ url_for('admin.delete_member', member_id=member.id) }}"
+                                    class="d-inline"
+                                    onsubmit="return confirmAction(this, 'Are you sure you want to permanently delete {{ member.full_name }}? This action cannot be undone.')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-outline-danger btn-sm" title="Delete member">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
