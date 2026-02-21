@@ -216,7 +216,7 @@ def manage_tee_times():
             if gen_date_str:
                 gen_date = date.fromisoformat(gen_date_str)
                 slots = generate_tee_time_slots(gen_date)
-                created = 0
+                created: int = 0
                 for slot in slots:
                     existing = TeeTime.query.filter_by(
                         date=gen_date, time=slot
@@ -420,15 +420,40 @@ def manage_comp_tee_times(comp_id):
 def manage_range():
     """View and create range bay time slots."""
     if request.method == 'POST':
-        range_time = RangeTime(
-            date=request.form.get('date'),
-            time=request.form.get('time'),
-            bay_number=request.form.get('bay_number', type=int),
-        )
-        db.session.add(range_time)
-        db.session.commit()
-        flash('Range time created.', 'success')
-        return redirect(url_for('admin.manage_range'))
+        action = request.form.get('action', 'create')
+        
+        if action == 'generate':
+            from ..services.tee_time_utils import generate_range_bay_slots
+            gen_date_str = request.form.get('generate_date')
+            if gen_date_str:
+                gen_date = date.fromisoformat(gen_date_str)
+                slots = generate_range_bay_slots(gen_date)
+                created: int = 0
+                for slot in slots:
+                    for bay_number in range(1, 7): # Bays 1 to 6
+                        existing = RangeTime.query.filter_by(
+                            date=gen_date, time=slot, bay_number=bay_number
+                        ).first()
+                        if not existing:
+                            db.session.add(RangeTime(
+                                date=gen_date, time=slot, bay_number=bay_number,
+                                is_available=True
+                            ))
+                            created += 1
+                db.session.commit()
+                flash(f'{created} range bay times generated for {gen_date.strftime("%d/%m/%Y")}.', 'success')
+            return redirect(url_for('admin.manage_range', date=gen_date_str))
+            
+        else:
+            range_time = RangeTime(
+                date=request.form.get('date'),
+                time=request.form.get('time'),
+                bay_number=request.form.get('bay_number', type=int),
+            )
+            db.session.add(range_time)
+            db.session.commit()
+            flash('Range time created.', 'success')
+            return redirect(url_for('admin.manage_range'))
 
     selected_date = request.args.get('date', date.today().isoformat())
     range_times = RangeTime.query.filter(

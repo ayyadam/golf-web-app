@@ -19,7 +19,8 @@ def generate_tee_time_slots(target_date, interval_minutes=10):
     """Return a list of datetime.time objects for general play on the given date."""
     start_h, start_m, end_h, end_m = get_seasonal_hours(target_date)
     slots = []
-    h, m = start_h, start_m
+    h: int = start_h
+    m: int = start_m
     while (h, m) <= (end_h, end_m):
         slots.append(time(h, m))
         m += interval_minutes
@@ -37,11 +38,27 @@ def generate_comp_tee_time_slots(target_date, interval_minutes=10):
     start_h, start_m, _, _ = get_seasonal_hours(target_date)
     end_h, end_m = 11, 50
     slots = []
-    h, m = start_h, start_m
+    h: int = start_h
+    m: int = start_m
     while (h, m) <= (end_h, end_m):
         slots.append(time(h, m))
         m += interval_minutes
         if m >= 60:
+            h += 1
+            m -= 60
+    return slots
+
+
+def generate_range_bay_slots(target_date, interval_minutes=30):
+    """Return a list of datetime.time objects for range bays on the given date (default 30m slots)."""
+    start_h, start_m, end_h, end_m = get_seasonal_hours(target_date)
+    slots = []
+    h: int = start_h
+    m: int = start_m
+    while (h, m) <= (end_h, end_m):
+        slots.append(time(h, m))
+        m += interval_minutes
+        while m >= 60:
             h += 1
             m -= 60
     return slots
