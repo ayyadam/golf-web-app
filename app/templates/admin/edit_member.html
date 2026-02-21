@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Edit Member — Admin{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Edit Member: {{ member.full_name }}</h2>
+            <a href="{{ url_for('admin.manage_members') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Members
+            </a>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card-glass p-4">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label">First Name</label><input type="text"
+                                    class="form-control" name="first_name" value="{{ member.first_name }}" required>
+                            </div>
+                            <div class="col-md-6"><label class="form-label">Last Name</label><input type="text"
+                                    class="form-control" name="last_name" value="{{ member.last_name }}" required></div>
+                            <div class="col-md-6"><label class="form-label">Email</label><input type="email"
+                                    class="form-control" name="email" value="{{ member.email }}" required></div>
+                            <div class="col-md-6"><label class="form-label">Telephone</label><input type="tel"
+                                    class="form-control" name="telephone" value="{{ member.telephone }}" required></div>
+                            <div class="col-md-4"><label class="form-label">Handicap</label><input type="number"
+                                    class="form-control" name="handicap" value="{{ member.handicap }}" step="0.1"
+                                    min="0" max="54"></div>
+                            <div class="col-md-4">
+                                <label class="form-label">Membership Type</label>
+                                <select class="form-select" name="membership_type">
+                                    <option value="Full Year" {% if member.membership_type=='Full Year' %}selected{%
+                                        endif %}>Full Year</option>
+                                    <option value="6 Month" {% if member.membership_type=='6 Month' %}selected{% endif
+                                        %}>6 Month</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end gap-3">
+                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox"
+                                        name="is_active" id="isActive" {% if member.is_active %}checked{% endif
+                                        %}><label class="form-check-label" for="isActive">Active</label></div>
+                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox"
+                                        name="is_admin" id="isAdmin" {% if member.is_admin %}checked{% endif %}><label
+                                        class="form-check-label" for="isAdmin">Admin</label></div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-agc"><i class="bi bi-check-circle me-1"></i>Save
+                                    Changes</button>
+                                <a href="{{ url_for('admin.manage_members') }}"
+                                    class="btn btn-agc-outline ms-2">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

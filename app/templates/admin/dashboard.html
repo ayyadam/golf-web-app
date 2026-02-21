@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — Adam's Golf Club{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <h2 class="mb-4"><i class="bi bi-gear me-2 text-success"></i>Admin Dashboard</h2>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-5">
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.total_members }}</div>
+                    <div class="stat-label">Active Members</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.pending_requests }}</div>
+                    <div class="stat-label">Pending Requests</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.upcoming_competitions }}</div>
+                    <div class="stat-label">Upcoming Comps</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.todays_bookings }}</div>
+                    <div class="stat-label">Today's Bookings</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('admin.membership_requests') }}" class="text-decoration-none">
+                    <div class="card-glass p-4 text-center">
+                        <i class="bi bi-person-plus text-success fs-2 mb-2"></i>
+                        <h6>Membership Requests</h6>
+                        {% if stats.pending_requests > 0 %}
+                        <span class="badge bg-danger">{{ stats.pending_requests }} pending</span>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('admin.manage_members') }}" class="text-decoration-none">
+                    <div class="card-glass p-4 text-center">
+                        <i class="bi bi-people text-success fs-2 mb-2"></i>
+                        <h6>Manage Members</h6>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('admin.manage_tee_times') }}" class="text-decoration-none">
+                    <div class="card-glass p-4 text-center">
+                        <i class="bi bi-calendar-week text-success fs-2 mb-2"></i>
+                        <h6>Manage Tee Times</h6>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('admin.manage_competitions') }}" class="text-decoration-none">
+                    <div class="card-glass p-4 text-center">
+                        <i class="bi bi-trophy text-warning fs-2 mb-2"></i>
+                        <h6>Manage Competitions</h6>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('admin.manage_range') }}" class="text-decoration-none">
+                    <div class="card-glass p-4 text-center">
+                        <i class="bi bi-bullseye text-success fs-2 mb-2"></i>
+                        <h6>Manage Range</h6>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('admin.manage_coaches') }}" class="text-decoration-none">
+                    <div class="card-glass p-4 text-center">
+                        <i class="bi bi-mortarboard text-success fs-2 mb-2"></i>
+                        <h6>Manage Coaching</h6>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

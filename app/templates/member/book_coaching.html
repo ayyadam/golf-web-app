@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Book Coaching — {{ coach.full_name }}{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('member.coaching') }}"
+                        class="text-success text-decoration-none">Coaches</a></li>
+                <li class="breadcrumb-item active">{{ coach.full_name }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>{{ coach.full_name }}</h2>
+                {% if coach.speciality %}
+                <span class="badge-agc">{{ coach.speciality }}</span>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('member.coaching') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Coaches
+            </a>
+        </div>
+
+        {% if existing_booking %}
+        <div class="alert alert-success d-flex align-items-center mb-4">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <div>
+                <strong>You have an upcoming coaching lesson</strong> with
+                {{ existing_booking.coaching_time.coach.full_name }} on
+                {{ existing_booking.coaching_time.date.strftime('%A %d %B %Y') }} at
+                {{ existing_booking.coaching_time.time.strftime('%H:%M') }}.
+                <br><small class="text-muted">To cancel, please contact the club.</small>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Date Selector -->
+        <div class="card-glass p-3 mb-4">
+            <form method="GET" class="d-flex gap-3 align-items-end">
+                <div>
+                    <label class="form-label">Select Date</label>
+                    <input type="date" class="form-control" name="date" value="{{ selected_date }}" min="{{ today }}"
+                        onchange="this.form.submit()">
+                </div>
+            </form>
+        </div>
+
+        <!-- Available Slots -->
+        {% if coaching_times %}
+        <div class="row g-3">
+            {% for ct in coaching_times %}
+            <div class="col-md-6 col-lg-4">
+                <div class="booking-slot">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="slot-time">{{ ct.time.strftime('%H:%M') }}</span>
+                            <span class="text-muted small ms-2">{{ ct.duration_mins }} min</span>
+                        </div>
+                        {% if ct.booking %}
+                        <span class="badge bg-secondary">Booked</span>
+                        {% else %}
+                        <form method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="coaching_time_id" value="{{ ct.id }}">
+                            <button class="btn btn-agc btn-sm">
+                                <i class="bi bi-calendar-check me-1"></i>Book
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-glass p-4 text-center">
+            <p class="text-muted mb-0">No available coaching slots for this date.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

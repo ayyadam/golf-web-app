@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Manage Coaches — Admin{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-mortarboard me-2 text-success"></i>Manage Coaches</h2>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card-glass p-4">
+                    <h5 class="mb-3">Add Coach</h5>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3"><label class="form-label">First Name</label><input type="text"
+                                class="form-control" name="first_name" required></div>
+                        <div class="mb-3"><label class="form-label">Last Name</label><input type="text"
+                                class="form-control" name="last_name" required></div>
+                        <div class="mb-3"><label class="form-label">Speciality</label><input type="text"
+                                class="form-control" name="speciality" placeholder="e.g. Short Game"></div>
+                        <div class="mb-3"><label class="form-label">Bio</label><textarea class="form-control" name="bio"
+                                rows="2"></textarea></div>
+                        <button class="btn btn-agc w-100"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                {% for coach in coaches %}
+                <div class="card-glass p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex flex-column">
+                            <h6 class="mb-1">{{ coach.full_name }}</h6>
+                            {% if coach.speciality %}<span class="badge-agc" style="width:fit-content;">{{
+                                coach.speciality }}</span>{% endif %}
+                        </div>
+                        <a href="{{ url_for('admin.manage_coaching_times', coach_id=coach.id) }}"
+                            class="btn btn-outline-success btn-sm"><i class="bi bi-clock-history me-1"></i>Schedule</a>
+                    </div>
+                </div>
+                {% else %}<p class="text-muted text-center">No coaches added.</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Edit Tee Time — Admin{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Edit Tee Time: {{ tee_time.date.strftime('%d/%m/%Y') }} {{ tee_time.time.strftime('%H:%M') }}
+            </h2>
+            <a href="{{ url_for('admin.manage_tee_times') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Tee Times
+            </a>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card-glass p-4">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="update">
+                        <div class="mb-3"><label class="form-label">Max Players</label><input type="number"
+                                class="form-control" name="max_players" value="{{ tee_time.max_players }}" min="1"
+                                max="4"></div>
+                        <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox"
+                                name="is_available" {% if tee_time.is_available %}checked{% endif %}><label
+                                class="form-check-label">Available</label></div>
+                        <button class="btn btn-agc"><i class="bi bi-check-circle me-1"></i>Save</button>
+                        <a href="{{ url_for('admin.manage_tee_times') }}" class="btn btn-agc-outline ms-2">Back</a>
+                    </form>
+                </div>
+
+                <!-- Delete Tee Time -->
+                <div class="card-glass p-4 mt-3">
+                    <h6 class="text-danger mb-3"><i class="bi bi-exclamation-triangle me-1"></i>Danger Zone</h6>
+                    <form method="POST"
+                        onsubmit="return confirmAction(this, 'Delete this tee time and all its bookings? This cannot be undone.')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="delete_tee_time">
+                        <button class="btn btn-outline-danger btn-sm w-100"><i class="bi bi-trash me-1"></i>Delete Tee
+                            Time</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <h5>Bookings ({{ bookings|length }})</h5>
+                {% for b in bookings %}
+                <div class="booking-slot">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span>{% if b.member %}{{ b.member.full_name }}{% elif b.visitor %}{{ b.visitor.full_name }}
+                                (Visitor){% endif %}</span>
+                            <span class="badge-agc ms-2">{{ b.group_size }}-ball</span>
+                        </div>
+                        <form method="POST" class="d-inline"
+                            onsubmit="return confirmAction(this, 'Remove this booking?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="remove_booking">
+                            <input type="hidden" name="booking_id" value="{{ b.id }}">
+                            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i></button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}<p class="text-muted">No bookings yet.</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

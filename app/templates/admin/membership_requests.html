@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Membership Requests — Admin{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-person-plus me-2 text-success"></i>Membership Requests</h2>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-dark align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Tel</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td>{{ req.full_name }}</td>
+                        <td>{{ req.email }}</td>
+                        <td>{{ req.telephone }}</td>
+                        <td><span class="badge-agc">{{ req.membership_type }}</span></td>
+                        <td>
+                            {% if req.status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
+                            {% elif req.status == 'approved' %}<span class="badge bg-success">Approved</span>
+                            {% else %}<span class="badge bg-danger">Rejected</span>{% endif %}
+                        </td>
+                        <td class="small">{{ req.submitted_at.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if req.status == 'pending' %}
+                            <form method="POST" action="{{ url_for('admin.approve_membership', req_id=req.id) }}"
+                                class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-success btn-sm"><i class="bi bi-check"></i></button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.reject_membership', req_id=req.id) }}"
+                                class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-danger btn-sm"><i class="bi bi-x"></i></button>
+                            </form>
+                            {% else %}—{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card-glass p-4 text-center">
+            <p class="text-muted mb-0">No membership requests.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

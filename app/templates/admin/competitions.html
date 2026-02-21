@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Manage Competitions — Admin{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-trophy me-2 text-warning"></i>Manage Competitions</h2>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card-glass p-4">
+                    <h5 class="mb-3">Create Competition</h5>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control"
+                                name="name" required></div>
+                        <div class="mb-3"><label class="form-label">Date</label><input type="date" class="form-control"
+                                name="date" required></div>
+                        <div class="mb-3"><label class="form-label">Format</label>
+                            <select class="form-select" name="format">
+                                <option>Stableford</option>
+                                <option>Medal</option>
+                                <option>Matchplay</option>
+                                <option>Texas Scramble</option>
+                                <option>Betterball</option>
+                            </select>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control"
+                                name="description" rows="2"></textarea></div>
+                        <button class="btn btn-gold w-100"><i class="bi bi-plus-circle me-1"></i>Create</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                {% for comp in competitions %}
+                <div class="card-glass p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ comp.name }}</h6>
+                            <span class="badge-gold me-2">{{ comp.format }}</span>
+                            <span class="text-muted small">{{ comp.date.strftime('%d/%m/%Y') }}</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.manage_comp_tee_times', comp_id=comp.id) }}"
+                                class="btn btn-outline-success btn-sm"><i class="bi bi-clock-history me-1"></i>Tee
+                                Times</a>
+                            <form method="POST" class="d-inline"
+                                onsubmit="return confirmAction(this, 'Delete competition &quot;{{ comp.name }}&quot; and all its tee times and bookings? This cannot be undone.')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="action" value="delete_competition">
+                                <input type="hidden" name="comp_id" value="{{ comp.id }}">
+                                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}<p class="text-muted text-center">No competitions created yet.</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

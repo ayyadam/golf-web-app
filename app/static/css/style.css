@@ -1,0 +1,630 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Adam's Golf Club — Custom Styles
+   Premium dark theme with green accents
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── CSS Custom Properties ─────────────────────────────────────────────── */
+:root {
+    --agc-green: #2d8a4e;
+    --agc-green-light: #3ca564;
+    --agc-green-dark: #1e6b3a;
+    --agc-gold: #c4a35a;
+    --agc-gold-light: #d4b76e;
+    --agc-dark: #0d1117;
+    --agc-dark-card: #161b22;
+    --agc-dark-border: #30363d;
+    --agc-text: #e6edf3;
+    --agc-text-muted: #8b949e;
+    --agc-gradient: linear-gradient(135deg, var(--agc-green-dark) 0%, var(--agc-green) 50%, var(--agc-green-light) 100%);
+    --agc-gradient-gold: linear-gradient(135deg, #b8943e 0%, var(--agc-gold) 50%, var(--agc-gold-light) 100%);
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --glass-bg: rgba(22, 27, 34, 0.85);
+    --glass-border: rgba(48, 54, 61, 0.6);
+}
+
+/* ── Global Styles ─────────────────────────────────────────────────────── */
+body {
+    font-family: var(--font-body);
+    background-color: var(--agc-dark);
+    color: var(--agc-text);
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+}
+
+/* ── Navigation ────────────────────────────────────────────────────────── */
+#mainNav {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+}
+
+#mainNav.scrolled {
+    background: rgba(13, 17, 23, 0.95);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.brand-text {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.25rem;
+    background: var(--agc-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.navbar .nav-link {
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease;
+    padding: 0.5rem 0.75rem;
+}
+
+.navbar .nav-link:hover {
+    color: var(--agc-green-light) !important;
+}
+
+.dropdown-menu {
+    background: var(--agc-dark-card);
+    border: 1px solid var(--agc-dark-border);
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(45, 138, 78, 0.15);
+    color: var(--agc-green-light);
+}
+
+/* ── Hero Section ──────────────────────────────────────────────────────── */
+.hero-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding-top: 76px;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        180deg,
+        rgba(13, 17, 23, 0.4) 0%,
+        rgba(13, 17, 23, 0.7) 50%,
+        rgba(13, 17, 23, 0.95) 100%
+    );
+    z-index: 1;
+}
+
+.hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title .accent {
+    background: var(--agc-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--agc-text-muted);
+    max-width: 600px;
+    margin-bottom: 2rem;
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+.card-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.card-glass:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(45, 138, 78, 0.15);
+    border-color: rgba(45, 138, 78, 0.3);
+}
+
+.card-glass .card-body {
+    padding: 1.5rem;
+}
+
+.card-glass .card-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Hole Cards */
+.hole-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.hole-card .hole-number {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    width: 48px;
+    height: 48px;
+    background: var(--agc-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    z-index: 2;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.hole-card .par-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--agc-gradient-gold);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    z-index: 2;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.btn-agc {
+    background: var(--agc-gradient);
+    border: none;
+    color: white;
+    font-weight: 500;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(45, 138, 78, 0.3);
+}
+
+.btn-agc:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(45, 138, 78, 0.4);
+    color: white;
+}
+
+.btn-agc-outline {
+    background: transparent;
+    border: 2px solid var(--agc-green);
+    color: var(--agc-green-light);
+    font-weight: 500;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.btn-agc-outline:hover {
+    background: var(--agc-gradient);
+    border-color: transparent;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-gold {
+    background: var(--agc-gradient-gold);
+    border: none;
+    color: var(--agc-dark);
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(196, 163, 90, 0.3);
+}
+
+.btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(196, 163, 90, 0.4);
+    color: var(--agc-dark);
+}
+
+/* ── Section Styles ────────────────────────────────────────────────────── */
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-header .section-subtitle {
+    color: var(--agc-text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.section-divider {
+    width: 60px;
+    height: 3px;
+    background: var(--agc-gradient);
+    margin: 1rem auto;
+    border-radius: 2px;
+}
+
+.content-section {
+    padding: 5rem 0;
+}
+
+/* ── Scorecard Table ───────────────────────────────────────────────────── */
+.scorecard-table {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--agc-dark-border);
+}
+
+.scorecard-table th {
+    background: var(--agc-green-dark);
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+    padding: 0.75rem;
+}
+
+.scorecard-table td {
+    background: var(--agc-dark-card);
+    border-color: var(--agc-dark-border);
+    font-size: 0.9rem;
+    padding: 0.625rem 0.75rem;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.scorecard-table .total-row td {
+    background: rgba(45, 138, 78, 0.15);
+    font-weight: 700;
+    border-top: 2px solid var(--agc-green);
+}
+
+/* ── Membership Pricing Cards ──────────────────────────────────────────── */
+.pricing-card {
+    background: var(--agc-dark-card);
+    border: 1px solid var(--agc-dark-border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.pricing-card.featured {
+    border-color: var(--agc-green);
+    box-shadow: 0 0 40px rgba(45, 138, 78, 0.15);
+}
+
+.pricing-card.featured::before {
+    content: 'Most Popular';
+    position: absolute;
+    top: 20px;
+    right: -30px;
+    background: var(--agc-gradient);
+    color: white;
+    padding: 0.25rem 2.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transform: rotate(45deg);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.pricing-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.pricing-card .price {
+    font-size: 3rem;
+    font-weight: 700;
+    font-family: var(--font-display);
+    margin: 1rem 0;
+}
+
+.pricing-card .price .currency {
+    font-size: 1.5rem;
+    vertical-align: super;
+}
+
+.pricing-card .price .period {
+    font-size: 1rem;
+    color: var(--agc-text-muted);
+    font-weight: 400;
+}
+
+/* ── Forms ──────────────────────────────────────────────────────────────── */
+.form-control, .form-select {
+    background: var(--agc-dark-card);
+    border: 1px solid var(--agc-dark-border);
+    border-radius: 10px;
+    color: var(--agc-text);
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--agc-dark-card);
+    border-color: var(--agc-green);
+    color: var(--agc-text);
+    box-shadow: 0 0 0 3px rgba(45, 138, 78, 0.15);
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--agc-text-muted);
+}
+
+/* ── Booking Slots ─────────────────────────────────────────────────────── */
+.booking-slot {
+    background: var(--agc-dark-card);
+    border: 1px solid var(--agc-dark-border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.booking-slot:hover {
+    border-color: var(--agc-green);
+    background: rgba(45, 138, 78, 0.05);
+}
+
+.booking-slot.booked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.booking-slot .slot-time {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--agc-green-light);
+}
+
+.booking-slot .slot-info {
+    font-size: 0.85rem;
+    color: var(--agc-text-muted);
+}
+
+/* ── Dashboard Cards ───────────────────────────────────────────────────── */
+.stat-card {
+    background: var(--agc-dark-card);
+    border: 1px solid var(--agc-dark-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-family: var(--font-display);
+    background: var(--agc-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-card .stat-label {
+    font-size: 0.85rem;
+    color: var(--agc-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.5rem;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+.footer {
+    background: var(--agc-dark-card);
+    border-top: 1px solid var(--agc-dark-border);
+}
+
+.footer-brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+/* ── Badge Styles ──────────────────────────────────────────────────────── */
+.badge-agc {
+    background: var(--agc-gradient);
+    color: white;
+    font-weight: 500;
+    padding: 0.35em 0.8em;
+    border-radius: 8px;
+}
+
+.badge-gold {
+    background: var(--agc-gradient-gold);
+    color: var(--agc-dark);
+    font-weight: 600;
+    padding: 0.35em 0.8em;
+    border-radius: 8px;
+}
+
+/* ── Animations ────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+}
+
+.animate-in:nth-child(1) { animation-delay: 0.1s; }
+.animate-in:nth-child(2) { animation-delay: 0.2s; }
+.animate-in:nth-child(3) { animation-delay: 0.3s; }
+.animate-in:nth-child(4) { animation-delay: 0.4s; }
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .content-section {
+        padding: 3rem 0;
+    }
+    
+    .section-header h2 {
+        font-size: 2rem;
+    }
+    
+    .pricing-card {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .scorecard-table {
+        font-size: 0.8rem;
+    }
+}
+
+/* ── Confirm Modal ────────────────────────────────────────────────────── */
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.confirm-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.confirm-dialog {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 2rem 2.25rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: scale(0.92) translateY(10px);
+    transition: transform 0.25s ease;
+}
+
+.confirm-overlay.active .confirm-dialog {
+    transform: scale(1) translateY(0);
+}
+
+.confirm-dialog .confirm-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    background: rgba(220, 53, 69, 0.15);
+    color: #f87171;
+    font-size: 1.3rem;
+}
+
+.confirm-dialog .confirm-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+}
+
+.confirm-dialog .confirm-message {
+    color: var(--agc-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.confirm-dialog .confirm-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}

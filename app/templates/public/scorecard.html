@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}Scorecard — Adam's Golf Club{% endblock %}
+
+{% block content %}
+<section class="position-relative" style="height: 300px; overflow: hidden;">
+    <img src="{{ url_for('static', filename='images/scorecard.jpg') }}" alt="Scorecard"
+        style="width:100%; height:100%; object-fit:cover; filter:brightness(0.5);">
+    <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+        <h1 class="fw-bold">Scorecard</h1>
+        <p class="lead mb-0">Full 18-hole yardage card</p>
+    </div>
+</section>
+<section class="content-section">
+    <div class="container">
+        <a href="{{ url_for('public.course_overview') }}" class="btn btn-agc-outline btn-sm mb-4">
+            <i class="bi bi-arrow-left me-1"></i>Back to Course
+        </a>
+        <div class="section-header">
+            <h2>Scorecard</h2>
+            <div class="section-divider"></div>
+            <p class="section-subtitle">Full 18-hole scorecard with yardages for all tees.</p>
+        </div>
+
+        {% if holes %}
+        <div class="table-responsive scorecard-table">
+            <table class="table table-dark mb-0">
+                <thead>
+                    <tr>
+                        <th>Hole</th>
+                        {% for hole in holes[:9] %}
+                        <th>{{ hole.hole_number }}</th>
+                        {% endfor %}
+                        <th class="text-warning">OUT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold">Par</td>
+                        {% set out_par = namespace(total=0) %}
+                        {% for hole in holes[:9] %}
+                        <td>{{ hole.par }}</td>
+                        {% set out_par.total = out_par.total + hole.par %}
+                        {% endfor %}
+                        <td class="fw-bold text-warning">{{ out_par.total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">SI</td>
+                        {% for hole in holes[:9] %}
+                        <td>{{ hole.stroke_index }}</td>
+                        {% endfor %}
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-info">Men's (yds)</td>
+                        {% set out_mens = namespace(total=0) %}
+                        {% for hole in holes[:9] %}
+                        <td>{{ hole.yards_mens }}</td>
+                        {% set out_mens.total = out_mens.total + hole.yards_mens %}
+                        {% endfor %}
+                        <td class="fw-bold text-info">{{ out_mens.total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-danger">Ladies (yds)</td>
+                        {% set out_ladies = namespace(total=0) %}
+                        {% for hole in holes[:9] %}
+                        <td>{{ hole.yards_ladies }}</td>
+                        {% set out_ladies.total = out_ladies.total + hole.yards_ladies %}
+                        {% endfor %}
+                        <td class="fw-bold text-danger">{{ out_ladies.total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-warning">Seniors (yds)</td>
+                        {% set out_seniors = namespace(total=0) %}
+                        {% for hole in holes[:9] %}
+                        <td>{{ hole.yards_seniors }}</td>
+                        {% set out_seniors.total = out_seniors.total + hole.yards_seniors %}
+                        {% endfor %}
+                        <td class="fw-bold text-warning">{{ out_seniors.total }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Back 9 -->
+        <div class="table-responsive scorecard-table mt-3">
+            <table class="table table-dark mb-0">
+                <thead>
+                    <tr>
+                        <th>Hole</th>
+                        {% for hole in holes[9:] %}
+                        <th>{{ hole.hole_number }}</th>
+                        {% endfor %}
+                        <th class="text-warning">IN</th>
+                        <th class="text-success">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold">Par</td>
+                        {% set in_par = namespace(total=0) %}
+                        {% for hole in holes[9:] %}
+                        <td>{{ hole.par }}</td>
+                        {% set in_par.total = in_par.total + hole.par %}
+                        {% endfor %}
+                        <td class="fw-bold text-warning">{{ in_par.total }}</td>
+                        <td class="fw-bold text-success">{{ out_par.total + in_par.total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">SI</td>
+                        {% for hole in holes[9:] %}
+                        <td>{{ hole.stroke_index }}</td>
+                        {% endfor %}
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-info">Men's (yds)</td>
+                        {% set in_mens = namespace(total=0) %}
+                        {% for hole in holes[9:] %}
+                        <td>{{ hole.yards_mens }}</td>
+                        {% set in_mens.total = in_mens.total + hole.yards_mens %}
+                        {% endfor %}
+                        <td class="fw-bold text-info">{{ in_mens.total }}</td>
+                        <td class="fw-bold text-info">{{ out_mens.total + in_mens.total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-danger">Ladies (yds)</td>
+                        {% set in_ladies = namespace(total=0) %}
+                        {% for hole in holes[9:] %}
+                        <td>{{ hole.yards_ladies }}</td>
+                        {% set in_ladies.total = in_ladies.total + hole.yards_ladies %}
+                        {% endfor %}
+                        <td class="fw-bold text-danger">{{ in_ladies.total }}</td>
+                        <td class="fw-bold text-danger">{{ out_ladies.total + in_ladies.total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-warning">Seniors (yds)</td>
+                        {% set in_seniors = namespace(total=0) %}
+                        {% for hole in holes[9:] %}
+                        <td>{{ hole.yards_seniors }}</td>
+                        {% set in_seniors.total = in_seniors.total + hole.yards_seniors %}
+                        {% endfor %}
+                        <td class="fw-bold text-warning">{{ in_seniors.total }}</td>
+                        <td class="fw-bold text-warning">{{ out_seniors.total + in_seniors.total }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center card-glass p-5">
+            <i class="bi bi-card-text text-muted fs-1 mb-3"></i>
+            <p class="text-muted">Scorecard data is being loaded.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

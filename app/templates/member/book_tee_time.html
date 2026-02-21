@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Book Tee Time — Adam's Golf Club{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-calendar-plus me-2 text-success"></i>Book a Tee Time</h2>
+            <a href="{{ url_for('member.dashboard') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+
+        <!-- Date Selector -->
+        <div class="card-glass p-3 mb-4">
+            <form method="GET" class="d-flex align-items-end gap-3">
+                <div>
+                    <label class="form-label" for="date">Select Date</label>
+                    <input type="date" class="form-control" id="date" name="date" value="{{ selected_date }}"
+                        min="{{ today }}" onchange="this.form.submit()">
+                </div>
+            </form>
+        </div>
+
+        <!-- Available Tee Times -->
+        {% if tee_times %}
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-3 mb-4">
+                {% for tt in tee_times %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="booking-slot {% if tt.slots_remaining <= 0 %}booked{% endif %}"
+                        onclick="{% if tt.slots_remaining > 0 %}selectTeeTime({{ tt.id }}, this){% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="slot-time">{{ tt.time.strftime('%H:%M') }}</div>
+                            <div>
+                                {% if tt.slots_remaining > 0 %}
+                                <span class="badge bg-success">{{ tt.slots_remaining }} slot{{ 's' if tt.slots_remaining
+                                    != 1 }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Full</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="slot-info mt-1">{{ tt.booked_count }}/{{ tt.max_players }} booked</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <input type="hidden" name="tee_time_id" id="selectedTeeTime">
+
+            <div id="bookingForm" class="card-glass p-4" style="display:none;">
+                <h5 class="mb-3">Booking Details</h5>
+                <div class="mb-3">
+                    <label class="form-label" for="groupSize">Group Size</label>
+                    <select class="form-select" id="groupSize" name="group_size" style="max-width: 200px;">
+                        <option value="1">1 - Single</option>
+                        <option value="2">2 - Two-ball</option>
+                        <option value="3">3 - Three-ball</option>
+                        <option value="4">4 - Four-ball</option>
+                    </select>
+                </div>
+                <div id="additionalPlayers"></div>
+                <button type="submit" class="btn btn-agc">
+                    <i class="bi bi-check-circle me-2"></i>Confirm Booking
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="card-glass p-4 text-center">
+            <p class="text-muted mb-0">No tee times available for this date.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectTeeTime(id, el) {
+        document.querySelectorAll('.booking-slot').forEach(s => s.style.borderColor = '');
+        el.style.borderColor = 'var(--agc-green)';
+        document.getElementById('selectedTeeTime').value = id;
+        document.getElementById('bookingForm').style.display = 'block';
+    }
+</script>
+{% endblock %}

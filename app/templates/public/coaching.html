@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Coaching — Adam's Golf Club{% endblock %}
+{% block content %}
+<section class="position-relative" style="height: 300px; overflow: hidden;">
+    <img src="{{ url_for('static', filename='images/coaching.jpg') }}" alt="Golf Coaching"
+        style="width:100%; height:100%; object-fit:cover; filter:brightness(0.5);">
+    <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+        <h1 class="fw-bold">Golf Coaching</h1>
+        <p class="lead mb-0">Expert PGA professionals at your service</p>
+    </div>
+</section>
+<section class="content-section">
+    <div class="container">
+        <a href="{{ url_for('public.home') }}" class="btn btn-agc-outline btn-sm mb-4">
+            <i class="bi bi-arrow-left me-1"></i>Back to Home
+        </a>
+        <div class="section-header">
+            <h2>Golf Coaching</h2>
+            <div class="section-divider"></div>
+            <p class="section-subtitle">Expert PGA-qualified coaches to help elevate your game.</p>
+        </div>
+        <div class="row g-4 mb-5">
+            {% for coach in coaches %}
+            <div class="col-md-6 col-lg-4 animate-on-scroll">
+                <div class="card-glass text-center p-4">
+                    <div class="mb-3"
+                        style="width:80px;height:80px;border-radius:50%;background:var(--agc-gradient);display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                        <i class="bi bi-person-fill fs-2 text-white"></i>
+                    </div>
+                    <h5>{{ coach.full_name }}</h5>
+                    {% if coach.speciality %}
+                    <span class="badge-agc mb-2">{{ coach.speciality }}</span>
+                    {% endif %}
+                    {% if coach.bio %}
+                    <p class="text-muted small mt-2 mb-0">{{ coach.bio }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center">
+                <div class="card-glass p-5">
+                    <i class="bi bi-mortarboard text-muted fs-1 mb-3"></i>
+                    <p class="text-muted">Our coaching team profiles are being updated.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card-glass p-4">
+                    <h4><i class="bi bi-info-circle text-success me-2"></i>Lesson Information</h4>
+                    <ul class="list-unstyled mt-3">
+                        <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Individual 60-minute lessons</li>
+                        <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Video analysis included</li>
+                        <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Members: £40/lesson | Visitors:
+                            £55/lesson</li>
+                        <li><i class="bi bi-check2 text-success me-2"></i>Book online or contact the pro shop</li>
+                    </ul>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('member.dashboard') }}" class="btn btn-agc mt-2">
+                        <i class="bi bi-calendar-plus me-2"></i>Book a Lesson
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-agc-outline mt-2">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Log in to Book
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

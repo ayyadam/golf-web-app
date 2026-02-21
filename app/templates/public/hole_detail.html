@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Hole {{ hole.hole_number }} — Adam's Golf Club{% endblock %}
+
+{% block content %}
+<section class="content-section" style="padding-top: 120px;">
+    <div class="container">
+        <a href="{{ url_for('public.course_overview') }}" class="btn btn-agc-outline btn-sm mb-3">
+            <i class="bi bi-arrow-left me-1"></i>Back to Course
+        </a>
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('public.course_overview') }}"
+                        class="text-success text-decoration-none">The Course</a></li>
+                <li class="breadcrumb-item active">Hole {{ hole.hole_number }}</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card-glass" style="overflow:hidden;">
+                    <div
+                        style="height: 400px; background: linear-gradient(135deg, #1a3a2a, #0d1117); position:relative; overflow:hidden;">
+                        <img src="{{ url_for('static', filename='images/holes/hole_%02d.jpg'|format(hole.hole_number)) }}"
+                            class="w-100 h-100" style="object-fit:cover;" alt="Hole {{ hole.hole_number }}"
+                            onerror="this.style.display='none'">
+                        <span class="hole-number" style="width:64px;height:64px;font-size:1.5rem;">{{ hole.hole_number
+                            }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <h1 class="mb-2">{{ hole.name or 'Hole ' ~ hole.hole_number }}</h1>
+                <span class="badge-gold mb-3 d-inline-block">Par {{ hole.par }}</span>
+
+                <div class="card-glass p-3 mt-3 mb-3">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-3">Yardages</h6>
+                    <div class="row text-center g-2">
+                        <div class="col-4">
+                            <div class="text-success fw-bold fs-4">{{ hole.yards_mens }}</div>
+                            <div class="text-muted small">Men's</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-danger fw-bold fs-4">{{ hole.yards_ladies }}</div>
+                            <div class="text-muted small">Ladies</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-warning fw-bold fs-4">{{ hole.yards_seniors }}</div>
+                            <div class="text-muted small">Seniors</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-glass p-3 mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Stroke Index</span>
+                        <span class="fw-bold">{{ hole.stroke_index }}</span>
+                    </div>
+                </div>
+
+                {% if hole.description %}
+                <div class="card-glass p-3 mb-3">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Description</h6>
+                    <p class="mb-0">{{ hole.description }}</p>
+                </div>
+                {% endif %}
+
+                {% if hole.tips %}
+                <div class="card-glass p-3" style="border-color: var(--agc-green);">
+                    <h6 class="text-success text-uppercase small fw-bold mb-2">
+                        <i class="bi bi-lightbulb me-1"></i>Playing Tips
+                    </h6>
+                    <p class="mb-0">{{ hole.tips }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="d-flex justify-content-between mt-4">
+            {% if hole.hole_number > 1 %}
+            <a href="{{ url_for('public.hole_detail', hole_number=hole.hole_number - 1) }}" class="btn btn-agc-outline">
+                <i class="bi bi-arrow-left me-1"></i>Hole {{ hole.hole_number - 1 }}
+            </a>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+            {% if hole.hole_number < 18 %} <a
+                href="{{ url_for('public.hole_detail', hole_number=hole.hole_number + 1) }}" class="btn btn-agc">
+                Hole {{ hole.hole_number + 1 }}<i class="bi bi-arrow-right ms-1"></i>
+                </a>
+                {% else %}
+                <a href="{{ url_for('public.scorecard') }}" class="btn btn-gold">
+                    <i class="bi bi-card-text me-1"></i>View Scorecard
+                </a>
+                {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

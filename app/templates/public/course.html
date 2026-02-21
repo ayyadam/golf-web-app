@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}The Course — Adam's Golf Club{% endblock %}
+
+{% block content %}
+<section class="position-relative" style="height: 300px; overflow: hidden;">
+    <img src="{{ url_for('static', filename='images/course.jpg') }}" alt="The Course"
+        style="width:100%; height:100%; object-fit:cover; filter:brightness(0.5);">
+    <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+        <h1 class="fw-bold">The Course</h1>
+        <p class="lead mb-0">18 holes of championship golf</p>
+    </div>
+</section>
+<section class="content-section">
+    <div class="container">
+        <a href="{{ url_for('public.home') }}" class="btn btn-agc-outline btn-sm mb-4">
+            <i class="bi bi-arrow-left me-1"></i>Back to Home
+        </a>
+        <div class="section-header">
+            <h2>The Course</h2>
+            <div class="section-divider"></div>
+            <p class="section-subtitle">
+                Walk our 18-hole championship course — each hole a unique challenge set amongst stunning scenery.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            {% for hole in holes %}
+            <div class="col-md-6 col-lg-4 animate-on-scroll">
+                <a href="{{ url_for('public.hole_detail', hole_number=hole.hole_number) }}"
+                    class="text-decoration-none">
+                    <div class="card-glass hole-card">
+                        <div class="position-relative"
+                            style="height: 200px; overflow:hidden; background: linear-gradient(135deg, #1a3a2a, #0d1117);">
+                            <img src="{{ url_for('static', filename='images/holes/hole_%02d.jpg'|format(hole.hole_number)) }}"
+                                class="w-100 h-100" style="object-fit:cover;" alt="Hole {{ hole.hole_number }}"
+                                onerror="this.style.display='none'">
+                            <span class="hole-number">{{ hole.hole_number }}</span>
+                            <span class="par-badge">Par {{ hole.par }}</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-white">
+                                {{ hole.name or 'Hole ' ~ hole.hole_number }}
+                            </h5>
+                            <div class="d-flex gap-3 text-muted small mb-2">
+                                <span><i class="bi bi-rulers me-1"></i>{{ hole.yards_mens }} yds</span>
+                                <span><i class="bi bi-hash me-1"></i>SI {{ hole.stroke_index }}</span>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                {{ hole.description[:100] ~ '...' if hole.description and hole.description|length > 100
+                                else hole.description or 'Explore this hole...' }}
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% else %}
+            <div class="col-12 text-center">
+                <div class="card-glass p-5">
+                    <i class="bi bi-flag text-muted fs-1 mb-3"></i>
+                    <p class="text-muted">Course data is being loaded. Check back soon!</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if holes %}
+        <div class="text-center mt-5">
+            <a href="{{ url_for('public.scorecard') }}" class="btn btn-agc">
+                <i class="bi bi-card-text me-2"></i>View Full Scorecard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

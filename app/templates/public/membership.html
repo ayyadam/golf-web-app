@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Membership — Adam's Golf Club{% endblock %}
+
+{% block content %}
+<section class="position-relative" style="height: 300px; overflow: hidden;">
+    <img src="{{ url_for('static', filename='images/clubhouse.jpg') }}" alt="The Clubhouse"
+        style="width:100%; height:100%; object-fit:cover; filter:brightness(0.5);">
+    <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+        <h1 class="fw-bold">Membership</h1>
+        <p class="lead mb-0">Join our community</p>
+    </div>
+</section>
+<section class="content-section">
+    <div class="container">
+        <a href="{{ url_for('public.home') }}" class="btn btn-agc-outline btn-sm mb-4">
+            <i class="bi bi-arrow-left me-1"></i>Back to Home
+        </a>
+        <div class="section-header">
+            <h2>Membership</h2>
+            <div class="section-divider"></div>
+            <p class="section-subtitle">
+                Join Adam's Golf Club with a membership that suits you. Enjoy unlimited access, competitions, and a
+                thriving community.
+            </p>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="row justify-content-center g-4 mb-5">
+            <div class="col-md-6 col-lg-5 animate-on-scroll">
+                <div class="pricing-card featured">
+                    <span class="badge-agc mb-3 d-inline-block">Full Year</span>
+                    <h3>Full Year Membership</h3>
+                    <div class="price">
+                        <span class="currency">£</span>1,200
+                        <span class="period">/year</span>
+                    </div>
+                    <p class="text-muted mb-4">12 months of unlimited access</p>
+                    <ul class="list-unstyled text-start mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited tee time
+                            bookings</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Access to all
+                            competitions</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Trackman range usage
+                        </li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Practice facilities
+                            access</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Member rate coaching
+                        </li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Handicap tracking</li>
+                    </ul>
+                    <a href="#membershipForm" class="btn btn-agc w-100">Apply Now</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-5 animate-on-scroll">
+                <div class="pricing-card">
+                    <span class="badge-gold mb-3 d-inline-block">Seasonal</span>
+                    <h3>6 Month Membership</h3>
+                    <div class="price">
+                        <span class="currency">£</span>750
+                        <span class="period">/6 months</span>
+                    </div>
+                    <p class="text-muted mb-4">April – September season</p>
+                    <ul class="list-unstyled text-start mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited tee time
+                            bookings</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Access to seasonal
+                            competitions</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Trackman range usage
+                        </li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Practice facilities
+                            access</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Member rate coaching
+                        </li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Handicap tracking</li>
+                    </ul>
+                    <a href="#membershipForm" class="btn btn-gold w-100">Apply Now</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Membership Request Form -->
+        <div id="membershipForm" class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card-glass p-4">
+                    <h3 class="mb-4"><i class="bi bi-envelope me-2 text-success"></i>Membership Request</h3>
+                    <form method="POST" action="{{ url_for('visitor.membership_request') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="first_name">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="last_name">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="telephone">Telephone</label>
+                                <input type="tel" class="form-control" id="telephone" name="telephone" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="membership_type">Membership Type</label>
+                                <select class="form-select" id="membership_type" name="membership_type">
+                                    <option value="Full Year">Full Year (£1,200/year)</option>
+                                    <option value="6 Month">6 Month (£750 Apr-Sep)</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="message">Message (optional)</label>
+                                <textarea class="form-control" id="message" name="message" rows="3"
+                                    placeholder="Tell us about yourself and your golfing experience..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-agc">
+                                    <i class="bi bi-send me-2"></i>Submit Request
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

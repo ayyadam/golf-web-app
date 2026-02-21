@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}{{ competition.name }} Tee Times — Admin{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('admin.manage_competitions') }}"
+                        class="text-success text-decoration-none">Competitions</a></li>
+                <li class="breadcrumb-item active">{{ competition.name }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{{ competition.name }} — Tee Times</h2>
+            <a href="{{ url_for('admin.manage_competitions') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Competitions
+            </a>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card-glass p-4 mb-3">
+                    <h5 class="mb-3">Add Tee Time</h5>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="add">
+                        <div class="mb-3"><label class="form-label">Time</label><input type="time" class="form-control"
+                                name="time" required></div>
+                        <div class="mb-3"><label class="form-label">Max Players</label><input type="number"
+                                class="form-control" name="max_players" value="3" min="1" max="4"></div>
+                        <button class="btn btn-gold w-100"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                    </form>
+                </div>
+                <div class="card-glass p-4">
+                    <h5 class="mb-3">Generate Tee Times</h5>
+                    <p class="text-muted small">Auto-generate competition tee times from the first seasonal hour to
+                        11:50 (3 players per slot).</p>
+                    <form method="POST"
+                        onsubmit="return confirmAction(this, 'Generate competition tee times? Existing times will not be duplicated.')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="generate">
+                        <button class="btn btn-agc w-100"><i class="bi bi-lightning me-1"></i>Generate</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                {% for ctt in comp_tee_times %}
+                <div class="card-glass p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="slot-time">{{ ctt.time.strftime('%H:%M') }}</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span
+                                class="badge bg-{% if ctt.slots_remaining > 0 %}success{% else %}secondary{% endif %}">{{
+                                ctt.booked_count }}/{{ ctt.max_players }}</span>
+                            {% set ctt_label = ctt.time.strftime('%H:%M') %}
+                            <form method="POST" class="d-inline"
+                                onsubmit="return confirmAction(this, 'Delete this {{ ctt_label }} tee time and all its bookings?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="action" value="delete_comp_tee_time">
+                                <input type="hidden" name="ctt_id" value="{{ ctt.id }}">
+                                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    {% for booking in ctt.bookings %}
+                    <div class="d-flex justify-content-between align-items-center text-muted small mb-1">
+                        <span>{{ booking.member.full_name }} <span class="text-muted">HCP {{ booking.member.handicap or
+                                'N/A' }}</span></span>
+                        <form method="POST" class="d-inline"
+                            onsubmit="return confirmAction(this, 'Remove {{ booking.member.full_name }} from this tee time?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="remove_booking">
+                            <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                            <button class="btn btn-outline-danger btn-sm py-0 px-1"><i
+                                    class="bi bi-x-circle small"></i></button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                    {% if not ctt.bookings.all() %}
+                    <p class="text-muted small mb-0">No bookings.</p>
+                    {% endif %}
+                </div>
+                {% else %}<p class="text-muted text-center">No tee times added yet.</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

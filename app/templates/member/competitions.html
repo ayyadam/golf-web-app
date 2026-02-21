@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Competitions — Adam's Golf Club{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-trophy me-2 text-warning"></i>Competition Schedule</h2>
+            <a href="{{ url_for('member.dashboard') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+        {% if competitions %}
+        <div class="row g-3">
+            {% for comp in competitions %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card-glass p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">{{ comp.name }}</h5>
+                        <span class="badge-gold">{{ comp.format }}</span>
+                    </div>
+                    <div class="text-muted small mb-3">
+                        <i class="bi bi-calendar me-1"></i>{{ comp.date.strftime('%A %d %B %Y') }}
+                    </div>
+                    {% if comp.description %}
+                    <p class="text-muted small mb-3">{{ comp.description }}</p>
+                    {% endif %}
+                    <a href="{{ url_for('member.book_competition', comp_id=comp.id) }}"
+                        class="btn btn-agc btn-sm w-100">
+                        <i class="bi bi-calendar-plus me-1"></i>Book Tee Time
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-glass p-4 text-center">
+            <i class="bi bi-trophy text-muted fs-1 mb-3"></i>
+            <p class="text-muted">No upcoming competitions. Check back soon!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

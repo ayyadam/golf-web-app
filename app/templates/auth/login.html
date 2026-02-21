@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Login — Adam's Golf Club{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 120px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card-glass p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-circle text-success fs-1 mb-3"></i>
+                        <h3>Member Login</h3>
+                        <p class="text-muted small">Sign in to access your member portal</p>
+                    </div>
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label" for="username">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required autofocus>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label" for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-agc w-100 mb-3">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </button>
+                    </form>
+                    <div class="text-center">
+                        <p class="text-muted small mb-0">
+                            Not a member? <a href="{{ url_for('public.membership') }}"
+                                class="text-success text-decoration-none">Join the club</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

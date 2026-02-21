@@ -1,0 +1,330 @@
+from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask_login import login_required, current_user
+from ..extensions import db
+from ..models import (
+    TeeTime, GeneralBooking, BookingPlayer,
+    Competition, CompetitionTeeTime, CompetitionBooking,
+    Coach, CoachingTime, CoachingBooking
+)
+from datetime import date, datetime, timedelta
+
+member_bp = Blueprint('member', __name__)
+
+
+@member_bp.before_request
+@login_required
+def require_login():
+    """All member routes require authentication."""
+    pass
+
+
+@member_bp.route('/dashboard')
+def dashboard():
+    """Member dashboard — upcoming bookings overview."""
+    today = date.today()
+    upcoming_bookings = GeneralBooking.query.join(TeeTime).filter(
+        GeneralBooking.member_id == current_user.id,
+        TeeTime.date >= today
+    ).order_by(TeeTime.date, TeeTime.time).all()
+
+    upcoming_comp_bookings = CompetitionBooking.query.join(
+        CompetitionTeeTime
+    ).join(Competition).filter(
+        CompetitionBooking.member_id == current_user.id,
+        Competition.date >= today
+    ).order_by(Competition.date).all()
+
+    upcoming_coaching = CoachingBooking.query.join(
+        CoachingTime
+    ).filter(
+        CoachingBooking.member_id == current_user.id,
+        CoachingTime.date >= today
+    ).order_by(CoachingTime.date, CoachingTime.time).all()
+
+    return render_template(
+        'member/dashboard.html',
+        upcoming_bookings=upcoming_bookings,
+        upcoming_comp_bookings=upcoming_comp_bookings,
+        upcoming_coaching=upcoming_coaching
+    )
+
+
+@member_bp.route('/coaching')
+def coaching():
+    """Browse available coaches."""
+    coaches = Coach.query.filter_by(is_active=True).all()
+    return render_template('member/coaching.html', coaches=coaches)
+
+
+@member_bp.route('/coaching/<int:coach_id>/book', methods=['GET', 'POST'])
+def book_coaching(coach_id):
+    """View available coaching slots and book a lesson."""
+    coach = Coach.query.get_or_404(coach_id)
+
+    if request.method == 'POST':
+        coaching_time_id = request.form.get('coaching_time_id', type=int)
+        ct = CoachingTime.query.get_or_404(coaching_time_id)
+
+        # Validate slot is available
+        if ct.booking:
+            flash('This time slot is already booked.', 'danger')
+            return redirect(url_for('member.book_coaching', coach_id=coach_id))
+
+        # Prevent booking past slots
+        now = datetime.now()
+        slot_dt = datetime.combine(ct.date, ct.time)
+        if slot_dt <= now:
+            flash('This coaching slot has already passed.', 'danger')
+            return redirect(url_for('member.book_coaching', coach_id=coach_id))
+
+        booking = CoachingBooking(
+            coaching_time_id=coaching_time_id,
+            member_id=current_user.id
+        )
+        db.session.add(booking)
+        db.session.commit()
+        flash(f'Coaching lesson booked with {coach.full_name} at {ct.time.strftime("%H:%M")} on {ct.date.strftime("%d/%m/%Y")}!', 'success')
+        return redirect(url_for('member.dashboard'))
+
+    # GET: show available time slots
+    selected_date = request.args.get('date', date.today().isoformat())
+    coaching_times = CoachingTime.query.filter(
+        CoachingTime.coach_id == coach_id,
+        CoachingTime.date == selected_date,
+        CoachingTime.is_available == True  # noqa: E712
+    ).order_by(CoachingTime.time).all()
+
+    # Filter out past slots if viewing today
+    if str(selected_date) == str(date.today()):
+        now_time = datetime.now().time()
+        coaching_times = [ct for ct in coaching_times if ct.time > now_time]
+
+    # Check if member already has a coaching booking
+    existing_booking = CoachingBooking.query.join(CoachingTime).filter(
+        CoachingBooking.member_id == current_user.id,
+        CoachingTime.date >= date.today()
+    ).first()
+
+    return render_template(
+        'member/book_coaching.html',
+        coach=coach,
+        coaching_times=coaching_times,
+        selected_date=selected_date,
+        today=date.today().isoformat(),
+        existing_booking=existing_booking
+    )
+
+
+def _filter_available_tee_times(selected_date):
+    """Return available general-play tee times for the given date,
+    filtering out past times and respecting competition-day rules."""
+    now = datetime.now()
+    today = date.today()
+
+    # Base query: available tee times for the selected date
+    query = TeeTime.query.filter(
+        TeeTime.date == selected_date,
+        TeeTime.is_available == True  # noqa: E712
+    )
+
+    # If selected date is today, exclude tee times that have already passed
+    if str(selected_date) == str(today):
+        query = query.filter(TeeTime.time > now.time())
+
+    # If selected date is in the past, return nothing
+    if str(selected_date) < str(today):
+        return []
+
+    tee_times = query.order_by(TeeTime.time).all()
+
+    # Competition-day rule: general play only 30 min after last comp tee time
+    competitions_on_date = Competition.query.filter(
+        Competition.date == selected_date,
+        Competition.is_active == True  # noqa: E712
+    ).all()
+
+    if competitions_on_date:
+        # Find the latest competition tee time across all competitions on this date
+        latest_comp_time = None
+        for comp in competitions_on_date:
+            for ctt in comp.tee_times:
+                if latest_comp_time is None or ctt.time > latest_comp_time:
+                    latest_comp_time = ctt.time
+
+        if latest_comp_time is not None:
+            # General play allowed 30 min after the last competition tee time
+            cutoff_dt = datetime.combine(today, latest_comp_time) + timedelta(minutes=30)
+            cutoff_time = cutoff_dt.time()
+            tee_times = [tt for tt in tee_times if tt.time >= cutoff_time]
+
+    return tee_times
+
+
+@member_bp.route('/book-tee-time', methods=['GET', 'POST'])
+def book_tee_time():
+    """Book a general play tee time."""
+    if request.method == 'POST':
+        tee_time_id = request.form.get('tee_time_id', type=int)
+        group_size = request.form.get('group_size', 1, type=int)
+
+        tee_time = TeeTime.query.get_or_404(tee_time_id)
+
+        # Prevent booking past tee times
+        now = datetime.now()
+        tee_dt = datetime.combine(tee_time.date, tee_time.time)
+        if tee_dt <= now:
+            flash('This tee time has already passed.', 'danger')
+            return redirect(url_for('member.book_tee_time'))
+
+        if group_size > tee_time.slots_remaining:
+            flash('Not enough slots available for your group size.', 'danger')
+            return redirect(url_for('member.book_tee_time'))
+
+        booking = GeneralBooking(
+            tee_time_id=tee_time_id,
+            member_id=current_user.id,
+            group_size=group_size
+        )
+        db.session.add(booking)
+
+        # Add additional players if group booking
+        for i in range(1, group_size):
+            player_name = request.form.get(f'player_{i}_name', '').strip()
+            player_handicap = request.form.get(f'player_{i}_handicap', type=float)
+            if player_name:
+                player = BookingPlayer(
+                    booking=booking,
+                    player_name=player_name,
+                    handicap=player_handicap
+                )
+                db.session.add(player)
+
+        db.session.commit()
+        flash('Tee time booked successfully!', 'success')
+        return redirect(url_for('member.dashboard'))
+
+    # GET: show available tee times (filtered for past times + competition rules)
+    selected_date = request.args.get('date', date.today().isoformat())
+    tee_times = _filter_available_tee_times(selected_date)
+
+    return render_template(
+        'member/book_tee_time.html',
+        tee_times=tee_times,
+        selected_date=selected_date,
+        today=date.today().isoformat()
+    )
+
+
+@member_bp.route('/competitions')
+def competitions():
+    """View upcoming competition schedule."""
+    today = date.today()
+    upcoming = Competition.query.filter(
+        Competition.date >= today,
+        Competition.is_active == True  # noqa: E712
+    ).order_by(Competition.date).all()
+    return render_template('member/competitions.html', competitions=upcoming)
+
+
+@member_bp.route('/competitions/<int:comp_id>/book', methods=['GET', 'POST'])
+def book_competition(comp_id):
+    """Book a competition tee time."""
+    competition = Competition.query.get_or_404(comp_id)
+
+    # Prevent booking past competitions
+    if competition.date < date.today():
+        flash('This competition has already passed.', 'danger')
+        return redirect(url_for('member.competitions'))
+
+    # Find existing booking for this competition (any tee time)
+    all_ctt_ids = [ctt.id for ctt in competition.tee_times]
+    existing_booking = CompetitionBooking.query.filter(
+        CompetitionBooking.comp_tee_time_id.in_(all_ctt_ids),
+        CompetitionBooking.member_id == current_user.id
+    ).first() if all_ctt_ids else None
+
+    if request.method == 'POST':
+        action = request.form.get('action', 'book')
+
+        if action == 'cancel':
+            if existing_booking:
+                db.session.delete(existing_booking)
+                db.session.commit()
+                flash('Your competition booking has been cancelled.', 'success')
+            return redirect(url_for('member.book_competition', comp_id=comp_id))
+
+        # action == 'book' (or swap)
+        comp_tee_time_id = request.form.get('comp_tee_time_id', type=int)
+        comp_tee_time = CompetitionTeeTime.query.get_or_404(comp_tee_time_id)
+
+        # Prevent booking past competition tee times
+        now = datetime.now()
+        comp_tee_dt = datetime.combine(competition.date, comp_tee_time.time)
+        if comp_tee_dt <= now:
+            flash('This competition tee time has already passed.', 'danger')
+            return redirect(url_for('member.book_competition', comp_id=comp_id))
+
+        # If already booked for same tee time, nothing to do
+        if existing_booking and existing_booking.comp_tee_time_id == comp_tee_time_id:
+            flash('You are already booked for this tee time.', 'info')
+            return redirect(url_for('member.book_competition', comp_id=comp_id))
+
+        # If already booked for a different tee time, swap
+        if existing_booking:
+            old_time = existing_booking.comp_tee_time.time.strftime('%H:%M')
+            db.session.delete(existing_booking)
+            db.session.flush()  # ensure slot is freed before re-checking
+
+        if comp_tee_time.slots_remaining <= 0:
+            flash('This tee time is fully booked.', 'danger')
+            return redirect(url_for('member.book_competition', comp_id=comp_id))
+
+        booking = CompetitionBooking(
+            comp_tee_time_id=comp_tee_time_id,
+            member_id=current_user.id
+        )
+        db.session.add(booking)
+        db.session.commit()
+
+        if existing_booking:
+            flash(f'Switched from {old_time} to {comp_tee_time.time.strftime("%H:%M")}.', 'success')
+        else:
+            flash('Competition tee time booked!', 'success')
+        return redirect(url_for('member.book_competition', comp_id=comp_id))
+
+    # GET: show competition tee times, filtering out past ones if today
+    comp_tee_times = CompetitionTeeTime.query.filter_by(
+        competition_id=comp_id
+    ).order_by(CompetitionTeeTime.time).all()
+
+    # If competition is today, filter out past tee times
+    if competition.date == date.today():
+        now = datetime.now().time()
+        comp_tee_times = [ctt for ctt in comp_tee_times if ctt.time > now]
+
+    return render_template(
+        'member/book_competition.html',
+        competition=competition,
+        comp_tee_times=comp_tee_times,
+        existing_booking=existing_booking
+    )
+
+
+@member_bp.route('/competitions/<int:comp_id>/cancel', methods=['POST'])
+@login_required
+def cancel_competition_booking(comp_id):
+    """Cancel the current user's competition booking."""
+    competition = Competition.query.get_or_404(comp_id)
+    all_ctt_ids = [ctt.id for ctt in competition.tee_times]
+    booking = CompetitionBooking.query.filter(
+        CompetitionBooking.comp_tee_time_id.in_(all_ctt_ids),
+        CompetitionBooking.member_id == current_user.id
+    ).first()
+    if booking:
+        db.session.delete(booking)
+        db.session.commit()
+        flash('Your competition booking has been cancelled.', 'success')
+    else:
+        flash('No booking found to cancel.', 'warning')
+    return redirect(url_for('member.dashboard'))
+

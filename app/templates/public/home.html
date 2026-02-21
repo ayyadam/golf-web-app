@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Adam's Golf Club — Welcome{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <img src="{{ url_for('static', filename='images/hero.jpg') }}" alt="Golf Course" class="hero-bg"
+        onerror="this.style.display='none'">
+    <div class="container hero-content">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="hero-title">
+                    Welcome to<br>
+                    <span class="accent">Adam's Golf Club</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Experience 18 holes of championship golf, state-of-the-art Trackman range,
+                    expert coaching, and a welcoming community. Your game starts here.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{{ url_for('public.course_overview') }}" class="btn btn-agc">
+                        <i class="bi bi-geo-alt me-2"></i>Explore the Course
+                    </a>
+                    <a href="{{ url_for('visitor.book_tee_time') }}" class="btn btn-agc-outline">
+                        <i class="bi bi-calendar-plus me-2"></i>Book a Tee Time
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Links Section -->
+<section class="content-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3 animate-on-scroll">
+                <a href="{{ url_for('public.course_overview') }}" class="text-decoration-none">
+                    <div class="card-glass text-center p-4">
+                        <i class="bi bi-flag-fill text-success fs-1 mb-3"></i>
+                        <h5>The Course</h5>
+                        <p class="text-muted small mb-0">18-hole championship course walkthrough</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3 animate-on-scroll">
+                <a href="{{ url_for('public.trackman') }}" class="text-decoration-none">
+                    <div class="card-glass text-center p-4">
+                        <i class="bi bi-bullseye text-success fs-1 mb-3"></i>
+                        <h5>Trackman Range</h5>
+                        <p class="text-muted small mb-0">High-tech practice bays with full analytics</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3 animate-on-scroll">
+                <a href="{{ url_for('public.coaching') }}" class="text-decoration-none">
+                    <div class="card-glass text-center p-4">
+                        <i class="bi bi-mortarboard-fill text-success fs-1 mb-3"></i>
+                        <h5>Coaching</h5>
+                        <p class="text-muted small mb-0">Expert PGA professionals at your service</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3 animate-on-scroll">
+                <a href="{{ url_for('public.membership') }}" class="text-decoration-none">
+                    <div class="card-glass text-center p-4">
+                        <i class="bi bi-person-badge-fill text-success fs-1 mb-3"></i>
+                        <h5>Membership</h5>
+                        <p class="text-muted small mb-0">Join our community — two flexible tiers</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="content-section" style="background: var(--agc-dark-card);">
+    <div class="container">
+        <div class="section-header">
+            <h2>A Premier Golfing Experience</h2>
+            <div class="section-divider"></div>
+            <p class="section-subtitle">
+                Nestled in the heart of Greenside Valley, Adam's Golf Club offers a world-class
+                golfing experience for players of all abilities.
+            </p>
+        </div>
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <div class="card-glass p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="stat-card me-3" style="min-width: 80px;">
+                            <div class="stat-value">18</div>
+                            <div class="stat-label">Holes</div>
+                        </div>
+                        <div class="stat-card me-3" style="min-width: 80px;">
+                            <div class="stat-value">72</div>
+                            <div class="stat-label">Par</div>
+                        </div>
+                        <div class="stat-card" style="min-width: 100px;">
+                            <div class="stat-value">6,842</div>
+                            <div class="stat-label">Yards</div>
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        Our championship course features a mix of challenging par 3s, strategic par 4s,
+                        and exhilarating par 5s — each hole with its own character and story.
+                    </p>
+                    <a href="{{ url_for('public.scorecard') }}" class="btn btn-agc-outline btn-sm">
+                        <i class="bi bi-card-text me-1"></i>View Scorecard
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card-glass p-4">
+                    <h5><i class="bi bi-star-fill text-warning me-2"></i>Club Highlights</h5>
+                    <ul class="list-unstyled mt-3">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Championship 18-hole
+                            course</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>6-bay Trackman
+                            practice range</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Dedicated chipping &
+                            putting greens</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>PGA-qualified coaching
+                            team</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Regular internal
+                            competitions</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Flexible membership options</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

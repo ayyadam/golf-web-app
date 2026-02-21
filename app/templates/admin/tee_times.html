@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Manage Tee Times — Admin{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-calendar-week me-2 text-success"></i>Manage Tee Times</h2>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+        <div class="row g-4">
+            <!-- Create -->
+            <div class="col-lg-4">
+                <div class="card-glass p-4">
+                    <h5 class="mb-3">Create Tee Time</h5>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="create">
+                        <div class="mb-3"><label class="form-label">Date</label><input type="date" class="form-control"
+                                name="date" required></div>
+                        <div class="mb-3"><label class="form-label">Time</label><input type="time" class="form-control"
+                                name="time" required></div>
+                        <div class="mb-3"><label class="form-label">Max Players</label><input type="number"
+                                class="form-control" name="max_players" value="4" min="1" max="4"></div>
+                        <button class="btn btn-agc w-100"><i class="bi bi-plus-circle me-1"></i>Create</button>
+                    </form>
+                </div>
+
+                <!-- Generate Seasonal -->
+                <div class="card-glass p-4 mt-3">
+                    <h5 class="mb-3">Generate Day's Tee Times</h5>
+                    <p class="small text-muted">Auto-create tee times based on seasonal hours.<br>
+                        Apr–Sep: 07:00–20:30 &bull; Oct–Mar: 08:00–15:30</p>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="generate">
+                        <div class="mb-3"><label class="form-label">Date</label><input type="date" class="form-control"
+                                name="generate_date" required></div>
+                        <button class="btn btn-outline-success w-100"><i
+                                class="bi bi-lightning me-1"></i>Generate</button>
+                    </form>
+                </div>
+            </div>
+            <!-- List -->
+            <div class="col-lg-8">
+                <div class="card-glass p-3 mb-3">
+                    <form method="GET" class="d-flex gap-3 align-items-end">
+                        <div><label class="form-label">Filter by Date</label><input type="date" class="form-control"
+                                name="date" value="{{ selected_date }}" onchange="this.form.submit()"></div>
+                    </form>
+                </div>
+                {% for tt in tee_times %}
+                <div class="booking-slot">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="slot-time">{{ tt.time.strftime('%H:%M') }}</span>
+                            <span class="text-muted ms-2 small">{{ tt.booked_count }}/{{ tt.max_players }} booked</span>
+                        </div>
+                        <a href="{{ url_for('admin.edit_tee_time', tt_id=tt.id) }}"
+                            class="btn btn-outline-success btn-sm"><i class="bi bi-pencil"></i></a>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No tee times for this date.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

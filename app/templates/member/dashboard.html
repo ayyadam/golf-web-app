@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — Adam's Golf Club{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <h2 class="mb-4">Welcome, {{ current_user.first_name }}!</h2>
+
+        <!-- Quick Actions -->
+        <div class="row g-3 mb-5">
+            <div class="col-md-4">
+                <a href="{{ url_for('member.book_tee_time') }}" class="text-decoration-none">
+                    <div class="stat-card">
+                        <i class="bi bi-calendar-plus text-success fs-2 mb-2"></i>
+                        <div class="stat-label">Book a Tee Time</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('member.competitions') }}" class="text-decoration-none">
+                    <div class="stat-card">
+                        <i class="bi bi-trophy text-warning fs-2 mb-2"></i>
+                        <div class="stat-label">Competitions</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('member.coaching') }}" class="text-decoration-none">
+                    <div class="stat-card">
+                        <i class="bi bi-mortarboard text-info fs-2 mb-2"></i>
+                        <div class="stat-label">Book Coaching</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Upcoming Tee Times -->
+        <h4 class="mb-3"><i class="bi bi-calendar-check me-2 text-success"></i>Upcoming Tee Times</h4>
+        {% if upcoming_bookings %}
+        <div class="row g-3 mb-5">
+            {% for booking in upcoming_bookings %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card-glass p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="slot-time">{{ booking.tee_time.time.strftime('%H:%M') }}</div>
+                        <span class="badge-agc">{{ booking.group_size }}-ball</span>
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi bi-calendar me-1"></i>{{ booking.tee_time.date.strftime('%A %d %B %Y') }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-glass p-4 mb-5 text-center">
+            <p class="text-muted mb-2">No upcoming tee times.</p>
+            <a href="{{ url_for('member.book_tee_time') }}" class="btn btn-agc btn-sm">Book Now</a>
+        </div>
+        {% endif %}
+
+        <!-- Upcoming Competitions -->
+        <h4 class="mb-3"><i class="bi bi-trophy me-2 text-warning"></i>Upcoming Competition Bookings</h4>
+        {% if upcoming_comp_bookings %}
+        <div class="row g-3 mb-5">
+            {% for booking in upcoming_comp_bookings %}
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('member.book_competition', comp_id=booking.comp_tee_time.competition.id) }}"
+                    class="text-decoration-none text-white">
+                    <div class="card-glass p-3" style="cursor:pointer;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">{{ booking.comp_tee_time.competition.name }}</h6>
+                            {% set comp_time = booking.comp_tee_time.time.strftime('%H:%M') %}
+                            <form method="POST"
+                                action="{{ url_for('member.cancel_competition_booking', comp_id=booking.comp_tee_time.competition.id) }}"
+                                class="d-inline" style="position:relative; z-index:2;"
+                                onclick="event.stopPropagation();"
+                                onsubmit="event.stopPropagation(); return confirmAction(this, 'Cancel your booking for {{ booking.comp_tee_time.competition.name }} at {{ comp_time }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-outline-danger btn-sm py-0 px-1" title="Cancel booking"><i
+                                        class="bi bi-x-circle small"></i></button>
+                            </form>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="slot-time">{{ booking.comp_tee_time.time.strftime('%H:%M') }}</span>
+                            <span class="badge-gold">{{ booking.comp_tee_time.competition.format }}</span>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            <i class="bi bi-calendar me-1"></i>{{ booking.comp_tee_time.competition.date.strftime('%A %d
+                            %B
+                            %Y') }}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-glass p-4 mb-5 text-center">
+            <p class="text-muted mb-2">No upcoming competition bookings.</p>
+            <a href="{{ url_for('member.competitions') }}" class="btn btn-gold btn-sm">View Competitions</a>
+        </div>
+        {% endif %}
+
+        <!-- Upcoming Coaching Lessons -->
+        <h4 class="mb-3"><i class="bi bi-mortarboard me-2 text-info"></i>Upcoming Coaching Lessons</h4>
+        {% if upcoming_coaching %}
+        <div class="row g-3">
+            {% for booking in upcoming_coaching %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card-glass p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">{{ booking.coaching_time.coach.full_name }}</h6>
+                        <span class="slot-time">{{ booking.coaching_time.time.strftime('%H:%M') }}</span>
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi bi-calendar me-1"></i>{{ booking.coaching_time.date.strftime('%A %d %B %Y') }}
+                    </div>
+                    <div class="text-muted small mt-1">
+                        <i class="bi bi-info-circle me-1"></i>To cancel, please contact the club.
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-glass p-4 text-center">
+            <p class="text-muted mb-2">No upcoming coaching lessons.</p>
+            <a href="{{ url_for('member.coaching') }}" class="btn btn-outline-info btn-sm">Browse Coaches</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
