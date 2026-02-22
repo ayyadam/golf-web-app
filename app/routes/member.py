@@ -23,32 +23,43 @@ def require_login():
 @member_bp.route('/dashboard')
 def dashboard():
     """Member dashboard — upcoming bookings overview."""
-    today = date.today()
+    now = datetime.now()
+    today = now.date()
+    current_time = now.time()
+
+    # General Tee Times
     upcoming_bookings = GeneralBooking.query.join(TeeTime).filter(
         GeneralBooking.member_id == current_user.id,
         TeeTime.date >= today
     ).order_by(TeeTime.date, TeeTime.time).all()
+    upcoming_bookings = [b for b in upcoming_bookings if not (b.tee_time.date == today and b.tee_time.time < current_time)]
 
+    # Competitions
     upcoming_comp_bookings = CompetitionBooking.query.join(
         CompetitionTeeTime
     ).join(Competition).filter(
         CompetitionBooking.member_id == current_user.id,
         Competition.date >= today
     ).order_by(Competition.date).all()
+    upcoming_comp_bookings = [b for b in upcoming_comp_bookings if not (b.comp_tee_time.competition.date == today and b.comp_tee_time.time < current_time)]
 
+    # Coaching
     upcoming_coaching = CoachingBooking.query.join(
         CoachingTime
     ).filter(
         CoachingBooking.member_id == current_user.id,
         CoachingTime.date >= today
     ).order_by(CoachingTime.date, CoachingTime.time).all()
+    upcoming_coaching = [b for b in upcoming_coaching if not (b.coaching_time.date == today and b.coaching_time.time < current_time)]
     
+    # Range Bays
     upcoming_range_bookings = RangeBooking.query.join(
         RangeTime
     ).filter(
         RangeBooking.member_id == current_user.id,
         RangeTime.date >= today
     ).order_by(RangeTime.date, RangeTime.time).all()
+    upcoming_range_bookings = [b for b in upcoming_range_bookings if not (b.range_time.date == today and b.range_time.time < current_time)]
 
     return render_template(
         'member/dashboard.html',
