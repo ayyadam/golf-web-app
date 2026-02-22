@@ -31,7 +31,12 @@ body {
     line-height: 1.6;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: var(--font-display);
     font-weight: 600;
 }
@@ -108,12 +113,10 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-        180deg,
-        rgba(13, 17, 23, 0.4) 0%,
-        rgba(13, 17, 23, 0.7) 50%,
-        rgba(13, 17, 23, 0.95) 100%
-    );
+    background: linear-gradient(180deg,
+            rgba(13, 17, 23, 0.4) 0%,
+            rgba(13, 17, 23, 0.7) 50%,
+            rgba(13, 17, 23, 0.95) 100%);
     z-index: 1;
 }
 
@@ -391,7 +394,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ── Forms ──────────────────────────────────────────────────────────────── */
-.form-control, .form-select {
+.form-control,
+.form-select {
     background: var(--agc-dark-card);
     border: 1px solid var(--agc-dark-border);
     border-radius: 10px;
@@ -400,7 +404,8 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.2s ease;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     background: var(--agc-dark-card);
     border-color: var(--agc-green);
     color: var(--agc-text);
@@ -444,6 +449,34 @@ h1, h2, h3, h4, h5, h6 {
 .booking-slot .slot-info {
     font-size: 0.85rem;
     color: var(--agc-text-muted);
+}
+
+/* ── Autocomplete Dropdown ────────────────────────────────────────────── */
+.autocomplete-results {
+    background: var(--agc-dark-card);
+    border: 1px solid var(--agc-dark-border);
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border-radius: 8px;
+    margin-top: 0.25rem;
+}
+
+.autocomplete-results .dropdown-item {
+    color: var(--agc-text);
+    padding: 0.5rem 1rem;
+    transition: background 0.2s ease;
+}
+
+.autocomplete-results .dropdown-item:hover,
+.autocomplete-results .dropdown-item:focus {
+    background: rgba(45, 138, 78, 0.15);
+    color: var(--agc-text);
 }
 
 /* ── Dashboard Cards ───────────────────────────────────────────────────── */
@@ -514,6 +547,7 @@ h1, h2, h3, h4, h5, h6 {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -525,25 +559,36 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0;
 }
 
-.animate-in:nth-child(1) { animation-delay: 0.1s; }
-.animate-in:nth-child(2) { animation-delay: 0.2s; }
-.animate-in:nth-child(3) { animation-delay: 0.3s; }
-.animate-in:nth-child(4) { animation-delay: 0.4s; }
+.animate-in:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.animate-in:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.animate-in:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.animate-in:nth-child(4) {
+    animation-delay: 0.4s;
+}
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .hero-title {
         font-size: 2.5rem;
     }
-    
+
     .content-section {
         padding: 3rem 0;
     }
-    
+
     .section-header h2 {
         font-size: 2rem;
     }
-    
+
     .pricing-card {
         padding: 2rem;
     }
@@ -553,7 +598,7 @@ h1, h2, h3, h4, h5, h6 {
     .hero-title {
         font-size: 2rem;
     }
-    
+
     .scorecard-table {
         font-size: 0.8rem;
     }

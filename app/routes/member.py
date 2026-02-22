@@ -201,6 +201,14 @@ def book_tee_time():
             flash('Not enough slots available for your group size.', 'danger')
             return redirect(url_for('member.book_tee_time'))
 
+        # Validate visitor handicaps before saving anything
+        for i in range(1, group_size):
+            player_handicap = request.form.get(f'player_{i}_handicap', type=float)
+            if player_handicap is not None:
+                if player_handicap < 0 or player_handicap > 54:
+                    flash(f'Player {i+1} handicap must be between 0 and 54.', 'danger')
+                    return redirect(url_for('member.book_tee_time', date=request.form.get('date')))
+
         booking = GeneralBooking(
             tee_time_id=tee_time_id,
             member_id=current_user.id,
@@ -234,6 +242,36 @@ def book_tee_time():
         selected_date=selected_date,
         today=date.today().isoformat()
     )
+
+
+@member_bp.route('/api/members/search')
+def search_members():
+    """API endpoint to search for members by name for autocomplete."""
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 1:
+        return {'members': []}
+
+    # Search by full name (first + last)
+    search_term = f"%{query}%"
+    members = Member.query.filter(
+        db.or_(
+            Member.first_name.ilike(search_term),
+            Member.last_name.ilike(search_term),
+            (Member.first_name + ' ' + Member.last_name).ilike(search_term)
+        ),
+        Member.is_active == True,  # noqa: E712
+        Member.id != current_user.id  # Exclude current user
+    ).limit(10).all()
+
+    results = []
+    for member in members:
+        results.append({
+            'id': member.id,
+            'name': member.full_name,
+            'handicap': float(member.handicap) if member.handicap else None
+        })
+
+    return {'members': results}
 
 
 @member_bp.route('/competitions')
