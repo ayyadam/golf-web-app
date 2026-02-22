@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — Adam's Golf Club{% endblock %}
+{% block content %}
+<section class="content-section" style="padding-top: 100px;">
+    <div class="container">
+        <h2 class="mb-4"><i class="bi bi-person-badge me-2 text-info"></i>My Profile</h2>
+
+        <div class="row g-4">
+            <!-- Editable Profile Details -->
+            <div class="col-lg-6">
+                <div class="card-glass p-4 h-100">
+                    <h4 class="mb-4">Account Details</h4>
+
+                    <form method="POST" action="{{ url_for('member.profile') }}" class="mb-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="update_profile">
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Full Name</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-muted"
+                                value="{{ current_user.full_name }}" disabled>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Email Address</label>
+                            <input type="email" class="form-control" name="email" value="{{ current_user.email }}"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Telephone</label>
+                            <input type="tel" class="form-control" name="telephone" value="{{ current_user.telephone }}"
+                                minlength="7" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-outline-info btn-sm w-100"><i
+                                class="bi bi-person-lines-fill me-1"></i>Update Contact Details</button>
+                    </form>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Handicap Index</label>
+                        <p class="fs-5 mb-0">{% if current_user.handicap %}{{ current_user.handicap }}{% else %}Not
+                            set{% endif %}</p>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Membership Type</label>
+                        <p class="fs-5 mb-0"><span class="badge bg-success">{{ current_user.membership_type }}</span>
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Member Since</label>
+                        <p class="fs-5 mb-0">{{ current_user.membership_start.strftime('%d %B %Y') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Change Form -->
+            <div class="col-lg-6">
+                <div class="card-glass p-4 h-100">
+                    <h4 class="mb-4"><i class="bi bi-shield-lock me-2 text-warning"></i>Security Settings</h4>
+                    <p class="text-muted mb-4">You can update your login password here to maintain account security.</p>
+
+                    <form method="POST" action="{{ url_for('member.profile') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="update_password">
+
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="current_password"
+                                    id="current_password" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button"
+                                    data-target="current_password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="new_password" id="new_password"
+                                    minlength="8" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button"
+                                    data-target="new_password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text text-muted">Must be at least 8 characters long, containing 1 capital
+                                letter and 1 number.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Confirm New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="confirm_password"
+                                    id="confirm_password" minlength="8" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button"
+                                    data-target="confirm_password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100"><i
+                                class="bi bi-arrow-repeat me-1"></i>Update Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function () {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from ..extensions import db
 from ..models import (
+    Member,
     TeeTime, GeneralBooking, BookingPlayer,
     Competition, CompetitionTeeTime, CompetitionBooking,
     Coach, CoachingTime, CoachingBooking,
@@ -428,3 +429,68 @@ def cancel_range_booking(booking_id):
     db.session.commit()
     flash('Your range booking has been cancelled.', 'success')
     return redirect(url_for('member.dashboard'))
+
+
+@member_bp.route('/profile', methods=['GET', 'POST'])
+def profile():
+    """Member profile and password management."""
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        if action == 'update_profile':
+            email = request.form.get('email', '').strip()
+            telephone = request.form.get('telephone', '').strip()
+
+            if not email or '@' not in email or '.' not in email:
+                flash('Please provide a valid email address.', 'danger')
+                return redirect(url_for('member.profile'))
+
+            if not telephone or len(telephone) < 7:
+                flash('Please provide a valid telephone number.', 'danger')
+                return redirect(url_for('member.profile'))
+
+            # Check if email is available (not taken by another user)
+            existing_user = Member.query.filter(Member.email == email, Member.id != current_user.id).first()
+            if existing_user:
+                flash('This email address is already in use by another account.', 'danger')
+                return redirect(url_for('member.profile'))
+
+            current_user.email = email
+            current_user.telephone = telephone
+            db.session.commit()
+            flash('Your personal details have been successfully updated.', 'success')
+            return redirect(url_for('member.profile'))
+
+        elif action == 'update_password':
+            current_password = request.form.get('current_password', '')
+            new_password = request.form.get('new_password', '')
+            confirm_password = request.form.get('confirm_password', '')
+
+            # Basic validations
+            if not current_user.check_password(current_password):
+                flash('Current password is incorrect.', 'danger')
+                return redirect(url_for('member.profile'))
+                
+            if not new_password or len(new_password) < 8:
+                flash('New password must be at least 8 characters long.', 'danger')
+                return redirect(url_for('member.profile'))
+                
+            if not any(c.isupper() for c in new_password):
+                flash('New password must contain at least 1 capital letter.', 'danger')
+                return redirect(url_for('member.profile'))
+                
+            if not any(c.isdigit() for c in new_password):
+                flash('New password must contain at least 1 number.', 'danger')
+                return redirect(url_for('member.profile'))
+                
+            if new_password != confirm_password:
+                flash('New passwords do not match.', 'danger')
+                return redirect(url_for('member.profile'))
+
+            # Update password
+            current_user.set_password(new_password)
+            db.session.commit()
+            flash('Your password has been successfully updated.', 'success')
+            return redirect(url_for('member.profile'))
+
+    return render_template('member/profile.html')
