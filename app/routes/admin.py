@@ -81,7 +81,7 @@ def approve_membership(req_id):
         membership_start=date.today(),
     )
     # Set a default password (admin should communicate to member to change it)
-    member.set_password('Welcome123!')
+    member.set_password('Password1')
 
     req.status = 'approved'
     req.reviewed_at = datetime.utcnow()
@@ -91,7 +91,7 @@ def approve_membership(req_id):
 
     flash(
         f'Membership approved for {req.full_name}. '
-        f'Username: {username}, Default password: Welcome123!',
+        f'Username: {username}, Default password: Password1',
         'success'
     )
     return redirect(url_for('admin.membership_requests'))
@@ -148,13 +148,13 @@ def manage_members():
             membership_type=membership_type,
             membership_start=date.today(),
         )
-        member.set_password('Welcome123!')
+        member.set_password('Password1')
         db.session.add(member)
         db.session.commit()
 
         flash(
             f'Member created: {member.full_name}. '
-            f'Username: {username}, Default password: Welcome123!',
+            f'Username: {username}, Default password: Password1',
             'success'
         )
         return redirect(url_for('admin.manage_members'))
