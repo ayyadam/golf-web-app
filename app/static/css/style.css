@@ -321,6 +321,7 @@ h6 {
     letter-spacing: 0.05em;
     border: none;
     padding: 0.75rem;
+    text-align: center;
 }
 
 .scorecard-table td {
@@ -330,6 +331,12 @@ h6 {
     padding: 0.625rem 0.75rem;
     text-align: center;
     vertical-align: middle;
+}
+
+.scorecard-table th:first-child,
+.scorecard-table td:first-child {
+    text-align: right;
+    padding-right: 1.5rem;
 }
 
 .scorecard-table .total-row td {
@@ -358,11 +365,13 @@ h6 {
 .pricing-card.featured::before {
     content: 'Most Popular';
     position: absolute;
-    top: 20px;
-    right: -30px;
+    top: 35px;
+    right: -55px;
+    width: 220px;
+    text-align: center;
     background: var(--agc-gradient);
     color: white;
-    padding: 0.25rem 2.5rem;
+    padding: 0.35rem 0;
     font-size: 0.75rem;
     font-weight: 600;
     transform: rotate(45deg);

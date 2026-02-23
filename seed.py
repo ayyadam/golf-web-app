@@ -56,30 +56,30 @@ def seed():
         # ── Course holes ────────────────────────────────────────
         if not Hole.query.first():
             holes_data = [
-                # (num, par, si, mens, ladies, seniors, name, description)
-                (1, 4, 7, 385, 340, 355, 'Greenside Rise', 'A sweeping dogleg left to a well-guarded green. Avoid the fairway bunkers on the right.'),
-                (2, 3, 15, 165, 130, 145, 'The Dell', 'A short par 3 over water. Club selection is key — the green slopes front to back.'),
-                (3, 5, 3, 520, 470, 490, 'Long Valley', 'The first par 5, reachable in two for big hitters. Beware the cross bunker at 230 yards.'),
-                (4, 4, 11, 375, 330, 350, 'Birch Avenue', 'Straightforward par 4 lined with silver birch trees. Keep it in play off the tee.'),
-                (5, 4, 1, 435, 390, 410, 'Heartbreak Hill', 'The number one stroke index — a long par 4 uphill to a plateau green. Tough approach.'),
-                (6, 3, 17, 145, 115, 128, 'Pond View', 'Short but tricky. Water right, bunkers left. The green is small and firm.'),
-                (7, 4, 9, 400, 355, 375, 'The Ridge', 'A tee shot over a ridge with a blind second to a tiered green. Local knowledge helps.'),
-                (8, 5, 5, 545, 500, 520, 'The Meadow', 'A wide-open par 5 offering birdie chances. Mind the out-of-bounds left.'),
-                (9, 4, 13, 365, 320, 340, 'Halfway House', 'A gentle par 4 to complete the front 9. Well-bunkered green with a false front.'),
-                (10, 4, 6, 410, 365, 385, 'Back Stretch', 'A strong opening to the back 9. The drive must carry the bunkers at 220 yards.'),
-                (11, 3, 16, 175, 140, 155, 'Hilltop', 'An elevated tee gives panoramic views. Take an extra club — the green is exposed to wind.'),
-                (12, 5, 4, 535, 485, 510, 'Eagle\'s Reach', 'A risk-reward par 5 with water guarding the green. Lay up or go for it?'),
-                (13, 4, 2, 440, 395, 415, 'The Quarry', 'Second hardest hole. A narrow fairway with quarry rough right. Accuracy over power.'),
-                (14, 4, 10, 380, 335, 355, 'Orchard Walk', 'An inviting par 4 through the old apple orchard. Favour the left side off the tee.'),
-                (15, 3, 18, 135, 105, 120, 'The Punchbowl', 'The shortest hole — a true punchbowl green. Anything on the surface feeds towards the pin.'),
-                (16, 4, 8, 405, 360, 380, 'Sunset Stretch', 'Play towards the setting sun. A two-tier green adds complexity to this late par 4.'),
-                (17, 4, 12, 370, 325, 345, 'Penultimate', 'A deceptive par 4 that plays longer than it looks. A pot bunker guards the front of the green.'),
-                (18, 5, 14, 510, 460, 480, 'The Finale', 'A fitting finish — a par 5 sweeping uphill to the clubhouse. Go low and finish strong.')
+                # (num, par, si, blues, whites, yellows, reds, name, description)
+                (1, 4, 7, 385, 370, 355, 340, 'Greenside Rise', 'A sweeping dogleg left to a well-guarded green. Avoid the fairway bunkers on the right.'),
+                (2, 3, 15, 165, 155, 145, 130, 'The Dell', 'A short par 3 over water. Club selection is key — the green slopes front to back.'),
+                (3, 5, 3, 520, 505, 490, 470, 'Long Valley', 'The first par 5, reachable in two for big hitters. Beware the cross bunker at 230 yards.'),
+                (4, 4, 11, 375, 362, 350, 330, 'Birch Avenue', 'Straightforward par 4 lined with silver birch trees. Keep it in play off the tee.'),
+                (5, 4, 1, 435, 422, 410, 390, 'Heartbreak Hill', 'The number one stroke index — a long par 4 uphill to a plateau green. Tough approach.'),
+                (6, 3, 17, 145, 136, 128, 115, 'Pond View', 'Short but tricky. Water right, bunkers left. The green is small and firm.'),
+                (7, 4, 9, 400, 387, 375, 355, 'The Ridge', 'A tee shot over a ridge with a blind second to a tiered green. Local knowledge helps.'),
+                (8, 5, 5, 545, 532, 520, 500, 'The Meadow', 'A wide-open par 5 offering birdie chances. Mind the out-of-bounds left.'),
+                (9, 4, 13, 365, 352, 340, 320, 'Halfway House', 'A gentle par 4 to complete the front 9. Well-bunkered green with a false front.'),
+                (10, 4, 6, 410, 397, 385, 365, 'Back Stretch', 'A strong opening to the back 9. The drive must carry the bunkers at 220 yards.'),
+                (11, 3, 16, 175, 165, 155, 140, 'Hilltop', 'An elevated tee gives panoramic views. Take an extra club — the green is exposed to wind.'),
+                (12, 5, 4, 535, 522, 510, 485, 'Eagle\'s Reach', 'A risk-reward par 5 with water guarding the green. Lay up or go for it?'),
+                (13, 4, 2, 440, 427, 415, 395, 'The Quarry', 'Second hardest hole. A narrow fairway with quarry rough right. Accuracy over power.'),
+                (14, 4, 10, 380, 367, 355, 335, 'Orchard Walk', 'An inviting par 4 through the old apple orchard. Favour the left side off the tee.'),
+                (15, 3, 18, 135, 127, 120, 105, 'The Punchbowl', 'The shortest hole — a true punchbowl green. Anything on the surface feeds towards the pin.'),
+                (16, 4, 8, 405, 392, 380, 360, 'Sunset Stretch', 'Play towards the setting sun. A two-tier green adds complexity to this late par 4.'),
+                (17, 4, 12, 370, 357, 345, 325, 'Penultimate', 'A deceptive par 4 that plays longer than it looks. A pot bunker guards the front of the green.'),
+                (18, 5, 14, 510, 495, 480, 460, 'The Finale', 'A fitting finish — a par 5 sweeping uphill to the clubhouse. Go low and finish strong.')
             ]
-            for num, par, si, mens, ladies, seniors, name, desc in holes_data:
+            for num, par, si, blues, whites, yellows, reds, name, desc in holes_data:
                 hole = Hole(
                     hole_number=num, par=par, stroke_index=si,
-                    yards_mens=mens, yards_ladies=ladies, yards_seniors=seniors,
+                    yards_blues=blues, yards_whites=whites, yards_yellows=yellows, yards_reds=reds,
                     name=name, description=desc
                 )
                 db.session.add(hole)

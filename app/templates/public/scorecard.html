@@ -51,31 +51,40 @@
                         <td>—</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold text-info">Men's (yds)</td>
-                        {% set out_mens = namespace(total=0) %}
+                        <td class="fw-bold text-info">Blues (yds)</td>
+                        {% set out_blues = namespace(total=0) %}
                         {% for hole in holes[:9] %}
-                        <td>{{ hole.yards_mens }}</td>
-                        {% set out_mens.total = out_mens.total + hole.yards_mens %}
+                        <td>{{ hole.yards_blues }}</td>
+                        {% set out_blues.total = out_blues.total + hole.yards_blues %}
                         {% endfor %}
-                        <td class="fw-bold text-info">{{ out_mens.total }}</td>
+                        <td class="fw-bold text-info">{{ out_blues.total }}</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold text-danger">Ladies (yds)</td>
-                        {% set out_ladies = namespace(total=0) %}
+                        <td class="fw-bold text-light">Whites (yds)</td>
+                        {% set out_whites = namespace(total=0) %}
                         {% for hole in holes[:9] %}
-                        <td>{{ hole.yards_ladies }}</td>
-                        {% set out_ladies.total = out_ladies.total + hole.yards_ladies %}
+                        <td>{{ hole.yards_whites }}</td>
+                        {% set out_whites.total = out_whites.total + hole.yards_whites %}
                         {% endfor %}
-                        <td class="fw-bold text-danger">{{ out_ladies.total }}</td>
+                        <td class="fw-bold text-light">{{ out_whites.total }}</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold text-warning">Seniors (yds)</td>
-                        {% set out_seniors = namespace(total=0) %}
+                        <td class="fw-bold text-warning">Yellows (yds)</td>
+                        {% set out_yellows = namespace(total=0) %}
                         {% for hole in holes[:9] %}
-                        <td>{{ hole.yards_seniors }}</td>
-                        {% set out_seniors.total = out_seniors.total + hole.yards_seniors %}
+                        <td>{{ hole.yards_yellows }}</td>
+                        {% set out_yellows.total = out_yellows.total + hole.yards_yellows %}
                         {% endfor %}
-                        <td class="fw-bold text-warning">{{ out_seniors.total }}</td>
+                        <td class="fw-bold text-warning">{{ out_yellows.total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-danger">Reds (yds)</td>
+                        {% set out_reds = namespace(total=0) %}
+                        {% for hole in holes[:9] %}
+                        <td>{{ hole.yards_reds }}</td>
+                        {% set out_reds.total = out_reds.total + hole.yards_reds %}
+                        {% endfor %}
+                        <td class="fw-bold text-danger">{{ out_reds.total }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -114,34 +123,44 @@
                         <td>—</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold text-info">Men's (yds)</td>
-                        {% set in_mens = namespace(total=0) %}
+                        <td class="fw-bold text-info">Blues (yds)</td>
+                        {% set in_blues = namespace(total=0) %}
                         {% for hole in holes[9:] %}
-                        <td>{{ hole.yards_mens }}</td>
-                        {% set in_mens.total = in_mens.total + hole.yards_mens %}
+                        <td>{{ hole.yards_blues }}</td>
+                        {% set in_blues.total = in_blues.total + hole.yards_blues %}
                         {% endfor %}
-                        <td class="fw-bold text-info">{{ in_mens.total }}</td>
-                        <td class="fw-bold text-info">{{ out_mens.total + in_mens.total }}</td>
+                        <td class="fw-bold text-info">{{ in_blues.total }}</td>
+                        <td class="fw-bold text-info">{{ out_blues.total + in_blues.total }}</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold text-danger">Ladies (yds)</td>
-                        {% set in_ladies = namespace(total=0) %}
+                        <td class="fw-bold text-light">Whites (yds)</td>
+                        {% set in_whites = namespace(total=0) %}
                         {% for hole in holes[9:] %}
-                        <td>{{ hole.yards_ladies }}</td>
-                        {% set in_ladies.total = in_ladies.total + hole.yards_ladies %}
+                        <td>{{ hole.yards_whites }}</td>
+                        {% set in_whites.total = in_whites.total + hole.yards_whites %}
                         {% endfor %}
-                        <td class="fw-bold text-danger">{{ in_ladies.total }}</td>
-                        <td class="fw-bold text-danger">{{ out_ladies.total + in_ladies.total }}</td>
+                        <td class="fw-bold text-light">{{ in_whites.total }}</td>
+                        <td class="fw-bold text-light">{{ out_whites.total + in_whites.total }}</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold text-warning">Seniors (yds)</td>
-                        {% set in_seniors = namespace(total=0) %}
+                        <td class="fw-bold text-warning">Yellows (yds)</td>
+                        {% set in_yellows = namespace(total=0) %}
                         {% for hole in holes[9:] %}
-                        <td>{{ hole.yards_seniors }}</td>
-                        {% set in_seniors.total = in_seniors.total + hole.yards_seniors %}
+                        <td>{{ hole.yards_yellows }}</td>
+                        {% set in_yellows.total = in_yellows.total + hole.yards_yellows %}
                         {% endfor %}
-                        <td class="fw-bold text-warning">{{ in_seniors.total }}</td>
-                        <td class="fw-bold text-warning">{{ out_seniors.total + in_seniors.total }}</td>
+                        <td class="fw-bold text-warning">{{ in_yellows.total }}</td>
+                        <td class="fw-bold text-warning">{{ out_yellows.total + in_yellows.total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-danger">Reds (yds)</td>
+                        {% set in_reds = namespace(total=0) %}
+                        {% for hole in holes[9:] %}
+                        <td>{{ hole.yards_reds }}</td>
+                        {% set in_reds.total = in_reds.total + hole.yards_reds %}
+                        {% endfor %}
+                        <td class="fw-bold text-danger">{{ in_reds.total }}</td>
+                        <td class="fw-bold text-danger">{{ out_reds.total + in_reds.total }}</td>
                     </tr>
                 </tbody>
             </table>

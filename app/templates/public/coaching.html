@@ -52,9 +52,8 @@
                     <ul class="list-unstyled mt-3">
                         <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Individual 60-minute lessons</li>
                         <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Video analysis included</li>
-                        <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Members: £40/lesson | Visitors:
-                            £55/lesson</li>
-                        <li><i class="bi bi-check2 text-success me-2"></i>Book online or contact the pro shop</li>
+                        <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Membership required</li>
+                        <li><i class="bi bi-check2 text-success me-2"></i>Book online</li>
                     </ul>
                     {% if current_user.is_authenticated %}
                     <a href="{{ url_for('member.dashboard') }}" class="btn btn-agc mt-2">
