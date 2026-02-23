@@ -12,31 +12,34 @@ def seed():
     """Seed the database with sample data."""
     app = create_app()
     with app.app_context():
-        print("🌱 Seeding database...")
+        print("Seeding database (clean reset)...")
+        db.drop_all()
+        db.create_all()
 
         # ── Admin user ──────────────────────────────────────────
-        if not Member.query.filter_by(username='admin').first():
+        if not Member.query.filter_by(username='adam.nance').first():
             admin = Member(
-                username='admin',
-                email='admin@adamsgolf.club',
+                username='adam.nance',
+                email='adam.nance@adamsgolfclub.com',
                 first_name='Adam',
-                last_name='Admin',
-                telephone='07700900000',
+                last_name='Nance',
+                telephone='01234567890',
                 membership_type='Full Year',
-                handicap=5.4,
+                handicap=9.3,
                 is_admin=True,
                 is_active=True,
             )
-            admin.set_password('admin123')
+            admin.set_password('Lightning1')
             db.session.add(admin)
-            print("  ✓ Admin user created (admin / admin123)")
+            print("  [OK] Admin user created (adam.nance / Lightning1)")
 
         # ── Sample members ──────────────────────────────────────
         members_data = [
-            ('jsmith', 'john@example.com', 'John', 'Smith', '07700900001', 'Full Year', 12.3),
-            ('ewhite', 'emma@example.com', 'Emma', 'White', '07700900002', 'Full Year', 8.7),
-            ('rjones', 'rob@example.com', 'Rob', 'Jones', '07700900003', '6 Month', 18.1),
-            ('sjacobs', 'sarah@example.com', 'Sarah', 'Jacobs', '07700900004', '6 Month', 22.5),
+            ('john.smith', 'john.smith@example.com', 'John', 'Smith', '01234567890', 'Full Year', 12.3),
+            ('emma.white', 'emma.white@example.com', 'Emma', 'White', '01234567890', 'Full Year', 8.7),
+            ('rob.jones', 'rob.jones@example.com', 'Rob', 'Jones', '01234567890', '6 Month', 18.1),
+            ('sarah.jacobs', 'sarah.jacobs@example.com', 'Sarah', 'Jacobs', '01234567890', '6 Month', 22.5),
+            ('jon.nance', 'jon.nance@example.com', 'Jon', 'Nance', '01234567890', 'Full Year', 16.0),
         ]
         for uname, email, fn, ln, tel, mtype, hcp in members_data:
             if not Member.query.filter_by(username=uname).first():
@@ -45,10 +48,10 @@ def seed():
                     telephone=tel, membership_type=mtype, handicap=hcp,
                     is_active=True,
                 )
-                m.set_password('member123')
+                m.set_password('Password1')
                 db.session.add(m)
         db.session.commit()
-        print("  ✓ Sample members created")
+        print("  [OK] Sample members created")
 
         # ── Course holes ────────────────────────────────────────
         if not Hole.query.first():
@@ -81,7 +84,7 @@ def seed():
                 )
                 db.session.add(hole)
             db.session.commit()
-            print("  ✓ 18 holes created")
+            print("  [OK] 18 holes created")
 
         # ── Coaches ─────────────────────────────────────────────
         if not Coach.query.first():
@@ -93,7 +96,7 @@ def seed():
             for fn, ln, spec, bio in coaches_data:
                 db.session.add(Coach(first_name=fn, last_name=ln, speciality=spec, bio=bio))
             db.session.commit()
-            print("  ✓ Coaches created")
+            print("  [OK] Coaches created")
 
         # ── Tee times (next 7 days) ────────────────────────────
         if not TeeTime.query.first():
@@ -107,7 +110,7 @@ def seed():
                         max_players=4, is_available=True
                     ))
             db.session.commit()
-            print("  ✓ Tee times created (7 days, seasonal hours)")
+            print("  [OK] Tee times created (7 days, seasonal hours)")
 
         # ── Sample competition ──────────────────────────────────
         if not Competition.query.first():
@@ -128,7 +131,7 @@ def seed():
                     max_players=3
                 ))
             db.session.commit()
-            print("  ✓ Sample competition created")
+            print("  [OK] Sample competition created")
 
         # ── Range times (next 7 days) ──────────────────────────
         if not RangeTime.query.first():
@@ -142,9 +145,9 @@ def seed():
                                 bay_number=bay
                             ))
             db.session.commit()
-            print("  ✓ Range times created (7 days, 6 bays)")
+            print("  [OK] Range times created (7 days, 6 bays)")
 
-        print("🎉 Seeding complete!")
+        print("Seeding complete!")
 
 
 if __name__ == '__main__':
