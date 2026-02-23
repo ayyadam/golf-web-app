@@ -34,8 +34,8 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Handicap</label>
-                        <input type="number" class="form-control" name="handicap" step="0.1" min="0" max="54"
-                            placeholder="Optional">
+                        <input type="text" class="form-control" name="handicap" inputmode="decimal"
+                            pattern="^[-+]?[0-9]*\\.?[0-9]+$" placeholder="Optional">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Membership Type</label>
@@ -73,7 +73,7 @@
                         <td>{{ member.full_name }}</td>
                         <td><code>{{ member.username }}</code></td>
                         <td>{{ member.email }}</td>
-                        <td>{{ member.handicap or '—' }}</td>
+                        <td>{{ member.handicap | format_handicap if member.handicap is not none else '—' }}</td>
                         <td><span class="badge-agc">{{ member.membership_type }}</span></td>
                         <td>{% if member.is_admin %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i
                                 class="bi bi-x-circle text-muted"></i>{% endif %}</td>

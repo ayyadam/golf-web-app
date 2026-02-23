@@ -171,11 +171,16 @@ def _filter_available_tee_times(selected_date):
         # Find the latest competition tee time across all competitions on this date
         latest_comp_time = None
         for comp in competitions_on_date:
-            for ctt in comp.tee_times:
+            for ctt in getattr(comp, 'tee_times', []):
                 if latest_comp_time is None or ctt.time > latest_comp_time:
                     latest_comp_time = ctt.time
 
         if latest_comp_time is not None:
+            # Pyre type assertion for combine function
+            from datetime import time as dt_time
+            if not isinstance(latest_comp_time, dt_time):
+                return tee_times
+                
             # General play allowed 30 min after the last competition tee time
             cutoff_dt = datetime.combine(today, latest_comp_time) + timedelta(minutes=30)
             cutoff_time = cutoff_dt.time()
@@ -217,12 +222,22 @@ def book_tee_time():
             flash('You are already booked for this tee time.', 'warning')
             return redirect(url_for('member.book_tee_time', date=request.form.get('date')))
 
+        def _parse_hcp(v):
+            if not v or not str(v).strip(): return None
+            v = str(v).strip()
+            is_plus = v.startswith('+')
+            try:
+                numeric = float(v.replace('+', ''))
+                return -abs(numeric) if is_plus else numeric
+            except ValueError:
+                return None
+
         # Validate visitor handicaps before saving anything
         for i in range(1, group_size):
-            player_handicap = request.form.get(f'player_{i}_handicap', type=float)
+            player_handicap = _parse_hcp(request.form.get(f'player_{i}_handicap'))
             if player_handicap is not None:
-                if player_handicap < 0 or player_handicap > 54:
-                    flash(f'Player {i+1} handicap must be between 0 and 54.', 'danger')
+                if player_handicap < -10 or player_handicap > 54:
+                    flash(f'Player {i+1} handicap must be between -10 and 54.', 'danger')
                     return redirect(url_for('member.book_tee_time', date=request.form.get('date')))
 
         booking = GeneralBooking(
@@ -235,7 +250,7 @@ def book_tee_time():
         # Add additional players if group booking
         for i in range(1, group_size):
             player_name = request.form.get(f'player_{i}_name', '').strip()
-            player_handicap = request.form.get(f'player_{i}_handicap', type=float)
+            player_handicap = _parse_hcp(request.form.get(f'player_{i}_handicap'))
             if player_name:
                 player = BookingPlayer(
                     booking=booking,

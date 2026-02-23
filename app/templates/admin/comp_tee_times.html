@@ -63,8 +63,8 @@
                     </div>
                     {% for booking in ctt.bookings %}
                     <div class="d-flex justify-content-between align-items-center text-muted small mb-1">
-                        <span>{{ booking.member.full_name }} <span class="text-muted">HCP {{ booking.member.handicap or
-                                'N/A' }}</span></span>
+                        <span>{{ booking.member.full_name }} <span class="text-muted">HCP {{ booking.member.handicap |
+                                format_handicap if booking.member.handicap is not none else 'N/A' }}</span></span>
                         <form method="POST" class="d-inline"
                             onsubmit="return confirmAction(this, 'Remove {{ booking.member.full_name }} from this tee time?')">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

@@ -4,6 +4,14 @@
 
 // ── Navbar scroll effect ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    function formatHandicap(value) {
+        if (value === null || value === undefined) return 'None';
+        const val = parseFloat(value);
+        if (isNaN(val)) return value;
+        if (val < 0) return '+' + Math.abs(val).toFixed(1);
+        return val.toFixed(1);
+    }
+
     const navbar = document.getElementById('mainNav');
 
     if (navbar) {
@@ -74,8 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label" for="player_${i}_handicap">Handicap</label>
-                                <input type="number" class="form-control" id="player_${i}_handicap" 
-                                       name="player_${i}_handicap" step="0.1" min="0" max="54">
+                                <input type="text" class="form-control" id="player_${i}_handicap" 
+                                       name="player_${i}_handicap" inputmode="decimal" pattern="^[-+]?[0-9]*\\.?[0-9]+$">
                             </div>
                         </div>
                     </div>
@@ -139,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const li = document.createElement('li');
                                     li.innerHTML = `<a class="dropdown-item" href="#" style="cursor:pointer">
                                         <div class="fw-bold">${member.name}</div>
-                                        <small class="text-muted">Handicap: ${member.handicap !== null ? member.handicap : 'None'}</small>
+                                        <small class="text-muted">Handicap: ${formatHandicap(member.handicap)}</small>
                                     </a>`;
 
                                     li.addEventListener('click', (e) => {
@@ -147,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         this.value = member.name;
 
                                         if (hcInput && member.handicap !== null) {
-                                            hcInput.value = member.handicap;
+                                            hcInput.value = formatHandicap(member.handicap);
                                             hcInput.readOnly = true;
                                         } else if (hcInput) {
                                             hcInput.value = '';

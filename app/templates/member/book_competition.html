@@ -69,7 +69,8 @@
                         {% for booking in ctt.bookings %}
                         <div class="d-flex justify-content-between mt-1">
                             <span class="small">{{ booking.member.full_name }}</span>
-                            <span class="small text-muted">HCP {{ booking.member.handicap or 'N/A' }}</span>
+                            <span class="small text-muted">HCP {{ booking.member.handicap | format_handicap if
+                                booking.member.handicap is not none else 'N/A' }}</span>
                         </div>
                         {% endfor %}
                     </div>

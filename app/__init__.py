@@ -38,4 +38,16 @@ def create_app(config_name=None):
     with app.app_context():
         db.create_all()
 
+    @app.template_filter('format_handicap')
+    def format_handicap(value):
+        if value is None:
+            return value
+        try:
+            val = float(str(value))
+            if val < 0:
+                return f"+{abs(val):.1f}"
+            return f"{val:.1f}"
+        except (ValueError, TypeError):
+            return value
+
     return app

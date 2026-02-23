@@ -24,9 +24,10 @@
                                     class="form-control" name="email" value="{{ member.email }}" required></div>
                             <div class="col-md-6"><label class="form-label">Telephone</label><input type="tel"
                                     class="form-control" name="telephone" value="{{ member.telephone }}" required></div>
-                            <div class="col-md-4"><label class="form-label">Handicap</label><input type="number"
-                                    class="form-control" name="handicap" value="{{ member.handicap }}" step="0.1"
-                                    min="0" max="54"></div>
+                            <div class="col-md-4"><label class="form-label">Handicap</label><input type="text"
+                                    class="form-control" name="handicap"
+                                    value="{{ member.handicap | format_handicap if member.handicap is not none else '' }}"
+                                    inputmode="decimal" pattern="^[-+]?[0-9]*\\.?[0-9]+$"></div>
                             <div class="col-md-4">
                                 <label class="form-label">Membership Type</label>
                                 <select class="form-select" name="membership_type">

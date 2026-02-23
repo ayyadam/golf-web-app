@@ -22,6 +22,17 @@ def require_admin():
     pass
 
 
+def _parse_hcp(v):
+    """Helper to parse raw HTML input (e.g. +2.0) into the expected internal negative float structure."""
+    if not v or not str(v).strip(): return None
+    v = str(v).strip()
+    is_plus = v.startswith('+')
+    try:
+        numeric = float(v.replace('+', ''))
+        return -abs(numeric) if is_plus else numeric
+    except ValueError:
+        return None
+
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 
 @admin_bp.route('/dashboard')
@@ -118,7 +129,7 @@ def manage_members():
         last_name = request.form.get('last_name', '').strip()
         email = request.form.get('email', '').strip()
         telephone = request.form.get('telephone', '').strip()
-        handicap = request.form.get('handicap', type=float)
+        handicap = _parse_hcp(request.form.get('handicap'))
         membership_type = request.form.get('membership_type', 'Full Year')
 
         if not all([first_name, last_name, email, telephone]):
@@ -189,7 +200,7 @@ def edit_member(member_id):
         member.last_name = request.form.get('last_name', member.last_name)
         member.email = request.form.get('email', member.email)
         member.telephone = request.form.get('telephone', member.telephone)
-        member.handicap = request.form.get('handicap', type=float)
+        member.handicap = _parse_hcp(request.form.get('handicap'))
         member.membership_type = request.form.get(
             'membership_type', member.membership_type
         )
@@ -226,7 +237,7 @@ def manage_tee_times():
                             date=gen_date, time=slot,
                             max_players=4, is_available=True
                         ))
-                        created += 1
+                        created = created + 1
                 db.session.commit()
                 flash(f'{created} tee times generated for {gen_date.strftime("%d/%m/%Y")}.', 'success')
             return redirect(url_for('admin.manage_tee_times', date=gen_date_str))
@@ -356,7 +367,7 @@ def manage_comp_tee_times(comp_id):
                     db.session.add(CompetitionTeeTime(
                         competition_id=comp_id, time=slot, max_players=3
                     ))
-                    added += 1
+                    added = added + 1
             db.session.commit()
             flash(f'{added} competition tee times generated.', 'success')
             return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
@@ -399,6 +410,8 @@ def manage_comp_tee_times(comp_id):
                 max_players=request.form.get('max_players', 3, type=int),
             )
             db.session.add(comp_tt)
+
+
             db.session.commit()
             flash('Competition tee time added.', 'success')
             return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
@@ -439,7 +452,7 @@ def manage_range():
                                 date=gen_date, time=slot, bay_number=bay_number,
                                 is_available=True
                             ))
-                            created += 1
+                            created = created + 1
                 db.session.commit()
                 flash(f'{created} range bay times generated for {gen_date.strftime("%d/%m/%Y")}.', 'success')
             return redirect(url_for('admin.manage_range', date=gen_date_str))
@@ -527,6 +540,7 @@ def manage_coaching_times():
                 db.session.delete(ct.booking)
                 db.session.commit()
                 flash('Coaching booking cancelled.', 'success')
+
             else:
                 flash('No booking found for this slot.', 'warning')
             return redirect(url_for('admin.manage_coaching_times', coach_id=coach.id, date=selected))

@@ -10,6 +10,18 @@ from datetime import date, datetime
 visitor_bp = Blueprint('visitor', __name__)
 
 
+def _parse_hcp(v):
+    """Helper to parse raw HTML input (e.g. +2.0) into the expected internal negative float structure."""
+    if not v or not str(v).strip(): return None
+    v = str(v).strip()
+    is_plus = v.startswith('+')
+    try:
+        numeric = float(v.replace('+', ''))
+        return -abs(numeric) if is_plus else numeric
+    except ValueError:
+        return None
+
+
 @visitor_bp.route('/book-tee-time', methods=['GET', 'POST'])
 def book_tee_time():
     """Visitor tee time booking — requires visitor details."""
@@ -20,7 +32,7 @@ def book_tee_time():
             last_name=request.form.get('last_name', '').strip(),
             email=request.form.get('email', '').strip(),
             telephone=request.form.get('telephone', '').strip(),
-            handicap=request.form.get('handicap', type=float),
+            handicap=_parse_hcp(request.form.get('handicap')),
         )
         db.session.add(visitor)
         db.session.flush()  # Get the visitor ID
@@ -52,7 +64,7 @@ def book_tee_time():
         # Add additional players
         for i in range(1, group_size):
             player_name = request.form.get(f'player_{i}_name', '').strip()
-            player_handicap = request.form.get(f'player_{i}_handicap', type=float)
+            player_handicap = _parse_hcp(request.form.get(f'player_{i}_handicap'))
             if player_name:
                 player = BookingPlayer(
                     booking=booking,

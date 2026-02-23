@@ -39,7 +39,8 @@
 
                     <div class="mb-3">
                         <label class="text-muted small">Handicap Index</label>
-                        <p class="fs-5 mb-0">{% if current_user.handicap %}{{ current_user.handicap }}{% else %}Not
+                        <p class="fs-5 mb-0">{% if current_user.handicap is not none %}{{ current_user.handicap |
+                            format_handicap }}{% else %}Not
                             set{% endif %}</p>
                     </div>
 

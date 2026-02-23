@@ -71,12 +71,13 @@
                         <div class="small fw-bold mb-1 text-light"><i class="bi bi-people me-1"></i>Players:</div>
                         <ul class="list-unstyled mb-0 small text-muted">
                             {% if booking.member_id != current_user.id %}
-                            <li>{{ booking.member.full_name }} {% if booking.member.handicap %}({{
-                                booking.member.handicap }}){% endif %}</li>
+                            <li>{{ booking.member.full_name }} {% if booking.member.handicap is not none %}({{
+                                booking.member.handicap | format_handicap }}){% endif %}</li>
                             {% endif %}
                             {% for player in booking.players %}
                             <li {% if player.player_name==current_user.full_name %}class="text-light" {% endif %}>
-                                {{ player.player_name }} {% if player.handicap %}({{ player.handicap }}){% endif %}
+                                {{ player.player_name }} {% if player.handicap is not none %}({{ player.handicap |
+                                format_handicap }}){% endif %}
                             </li>
                             {% endfor %}
                         </ul>
