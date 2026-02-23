@@ -29,7 +29,10 @@ def dashboard():
 
     # General Tee Times
     upcoming_bookings = GeneralBooking.query.join(TeeTime).filter(
-        GeneralBooking.member_id == current_user.id,
+        db.or_(
+            GeneralBooking.member_id == current_user.id,
+            GeneralBooking.players.any(BookingPlayer.player_name == current_user.full_name)
+        ),
         TeeTime.date >= today
     ).order_by(TeeTime.date, TeeTime.time).all()
     upcoming_bookings = [b for b in upcoming_bookings if not (b.tee_time.date == today and b.tee_time.time < current_time)]
@@ -201,6 +204,19 @@ def book_tee_time():
             flash('Not enough slots available for your group size.', 'danger')
             return redirect(url_for('member.book_tee_time'))
 
+        # Prevent double booking the same time
+        existing_booking = GeneralBooking.query.join(TeeTime).filter(
+            TeeTime.id == tee_time_id,
+            db.or_(
+                GeneralBooking.member_id == current_user.id,
+                GeneralBooking.players.any(BookingPlayer.player_name == current_user.full_name)
+            )
+        ).first()
+
+        if existing_booking:
+            flash('You are already booked for this tee time.', 'warning')
+            return redirect(url_for('member.book_tee_time', date=request.form.get('date')))
+
         # Validate visitor handicaps before saving anything
         for i in range(1, group_size):
             player_handicap = request.form.get(f'player_{i}_handicap', type=float)
@@ -234,13 +250,29 @@ def book_tee_time():
 
     # GET: show available tee times (filtered for past times + competition rules)
     selected_date = request.args.get('date', date.today().isoformat())
-    tee_times = _filter_available_tee_times(selected_date)
+    try:
+        parsed_date = date.fromisoformat(selected_date)
+    except ValueError:
+        parsed_date = date.today()
+        selected_date = parsed_date.isoformat()
+
+    tee_times = _filter_available_tee_times(parsed_date)
+
+    # Fetch user's existing bookings for this day to highlight them
+    user_bookings = GeneralBooking.query.join(TeeTime).filter(
+        TeeTime.date == parsed_date,
+        db.or_(
+            GeneralBooking.member_id == current_user.id,
+            GeneralBooking.players.any(BookingPlayer.player_name == current_user.full_name)
+        )
+    ).all()
 
     return render_template(
         'member/book_tee_time.html',
         tee_times=tee_times,
         selected_date=selected_date,
-        today=date.today().isoformat()
+        today=date.today().isoformat(),
+        user_bookings=user_bookings
     )
 
 
@@ -385,6 +417,32 @@ def cancel_competition_booking(comp_id):
         flash('Your competition booking has been cancelled.', 'success')
     else:
         flash('No booking found to cancel.', 'warning')
+    return redirect(url_for('member.dashboard'))
+
+
+@member_bp.route('/cancel-general-booking/<int:booking_id>', methods=['POST'])
+@login_required
+def cancel_general_booking(booking_id):
+    """Cancel a member's general tee time or remove them from it."""
+    booking = GeneralBooking.query.get_or_404(booking_id)
+
+    if booking.member_id == current_user.id:
+        # Primary booker: delete entire booking
+        db.session.delete(booking)
+        db.session.commit()
+        flash('Your tee time booking has been cancelled.', 'success')
+        return redirect(url_for('member.dashboard'))
+    
+    # Check if they are an additional player
+    player = booking.players.filter_by(player_name=current_user.full_name).first()
+    if player:
+        db.session.delete(player)
+        booking.group_size -= 1
+        db.session.commit()
+        flash('You have been removed from the tee time.', 'success')
+        return redirect(url_for('member.dashboard'))
+
+    flash('Unauthorized.', 'danger')
     return redirect(url_for('member.dashboard'))
 
 

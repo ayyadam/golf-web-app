@@ -23,32 +23,74 @@
 
         <!-- Available Tee Times -->
         {% if tee_times %}
-        <form method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="row g-3 mb-4">
-                {% for tt in tee_times %}
-                <div class="col-md-6 col-lg-4">
-                    <div class="booking-slot {% if tt.slots_remaining <= 0 %}booked{% endif %}"
-                        onclick="{% if tt.slots_remaining > 0 %}selectTeeTime({{ tt.id }}, this){% endif %}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="slot-time">{{ tt.time.strftime('%H:%M') }}</div>
-                            <div>
-                                {% if tt.slots_remaining > 0 %}
-                                <span class="badge bg-success">{{ tt.slots_remaining }} slot{{ 's' if tt.slots_remaining
-                                    != 1 }}</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Full</span>
-                                {% endif %}
-                            </div>
+        {% set user_booked_tt_ids = user_bookings | map(attribute='tee_time_id') | list %}
+        <div class="row g-3 mb-4">
+            {% for tt in tee_times %}
+            <div class="col-md-6 col-lg-4">
+                {% set is_user_booked = tt.id in user_booked_tt_ids %}
+                <div class="booking-slot {% if is_user_booked or tt.slots_remaining <= 0 %}booked{% endif %}" {% if
+                    is_user_booked %}style="border-color: var(--agc-green);" {% endif %}
+                    onclick="{% if not is_user_booked and tt.slots_remaining > 0 %}selectTeeTime({{ tt.id }}, this){% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="slot-time">{{ tt.time.strftime('%H:%M') }}</div>
+                        <div>
+                            {% if is_user_booked %}
+                            <span class="badge bg-success"><i class="bi bi-check2-circle me-1"></i>Booked by
+                                you</span>
+                            {% elif tt.slots_remaining > 0 %}
+                            <span class="badge bg-success">{{ tt.slots_remaining }} slot{{ 's' if tt.slots_remaining
+                                != 1 }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Full</span>
+                            {% endif %}
                         </div>
-                        <div class="slot-info mt-1">{{ tt.booked_count }}/{{ tt.max_players }} booked</div>
                     </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="slot-info">{{ tt.booked_count }}/{{ tt.max_players }} booked</span>
+                        {% if is_user_booked %}
+                        {% set booking = user_bookings | selectattr('tee_time_id', 'equalto', tt.id) | first %}
+                        {% if booking %}
+                        <form method="POST"
+                            action="{{ url_for('member.cancel_general_booking', booking_id=booking.id) }}"
+                            class="d-inline"
+                            onsubmit="return confirmAction(this, '{{ 'You are the primary booker. Cancelling this will cancel the tee time for your entire group. Proceed?' if booking.member_id == current_user.id and booking.group_size > 1 else 'Cancel your tee time?' }}')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-outline-danger btn-sm py-0 px-1" title="Cancel booking">
+                                <i class="bi bi-x-circle small"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+
+                    {% if is_user_booked %}
+                    {% set booking = user_bookings | selectattr('tee_time_id', 'equalto', tt.id) | first %}
+                    {% if booking and booking.players.count() > 0 %}
+                    <div class="mt-2 pt-2 border-top border-secondary text-start">
+                        <div class="small fw-bold mb-1 text-light"><i class="bi bi-people me-1"></i>Players:</div>
+                        <ul class="list-unstyled mb-0 small text-muted">
+                            {% if booking.member_id != current_user.id %}
+                            <li>{{ booking.member.full_name }} {% if booking.member.handicap %}({{
+                                booking.member.handicap }}){% endif %}</li>
+                            {% endif %}
+                            {% for player in booking.players %}
+                            <li {% if player.player_name==current_user.full_name %}class="text-light" {% endif %}>
+                                {{ player.player_name }} {% if player.handicap %}({{ player.handicap }}){% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% endif %}
                 </div>
-                {% endfor %}
             </div>
+            {% endfor %}
+        </div>
 
-            <input type="hidden" name="tee_time_id" id="selectedTeeTime">
+        <input type="hidden" name="tee_time_id" id="selectedTeeTime" form="mainBookingForm">
 
+        <form method="POST" id="mainBookingForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div id="bookingForm" class="card-glass p-4" style="display:none; overflow: visible;">
                 <h5 class="mb-3">Booking Details</h5>
                 <div class="mb-3">

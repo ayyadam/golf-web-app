@@ -50,11 +50,38 @@
                 <div class="card-glass p-3">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="slot-time">{{ booking.tee_time.time.strftime('%H:%M') }}</div>
-                        <span class="badge-agc">{{ booking.group_size }}-ball</span>
+                        <div>
+                            <span class="badge-agc me-1">{{ booking.group_size }}-ball</span>
+                            <form method="POST"
+                                action="{{ url_for('member.cancel_general_booking', booking_id=booking.id) }}"
+                                class="d-inline"
+                                onsubmit="return confirmAction(this, '{{ 'You are the primary booker. Cancelling this will cancel the tee time for your entire group. Proceed?' if booking.member_id == current_user.id and booking.group_size > 1 else 'Cancel your tee time?' }}')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-outline-danger btn-sm py-0 px-1" title="Cancel booking">
+                                    <i class="bi bi-x-circle small"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     <div class="text-muted small">
                         <i class="bi bi-calendar me-1"></i>{{ booking.tee_time.date.strftime('%A %d %B %Y') }}
                     </div>
+                    {% if booking.players.count() > 0 %}
+                    <div class="mt-2 pt-2 border-top border-secondary">
+                        <div class="small fw-bold mb-1 text-light"><i class="bi bi-people me-1"></i>Players:</div>
+                        <ul class="list-unstyled mb-0 small text-muted">
+                            {% if booking.member_id != current_user.id %}
+                            <li>{{ booking.member.full_name }} {% if booking.member.handicap %}({{
+                                booking.member.handicap }}){% endif %}</li>
+                            {% endif %}
+                            {% for player in booking.players %}
+                            <li {% if player.player_name==current_user.full_name %}class="text-light" {% endif %}>
+                                {{ player.player_name }} {% if player.handicap %}({{ player.handicap }}){% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
