@@ -42,21 +42,44 @@
             <div class="col-lg-7">
                 <h5>Bookings ({{ bookings|length }})</h5>
                 {% for b in bookings %}
-                <div class="booking-slot">
-                    <div class="d-flex justify-content-between align-items-center">
+                <div class="booking-slot mb-3 p-3 border border-secondary rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
+                            <strong>Primary:</strong>
                             <span>{% if b.member %}{{ b.member.full_name }}{% elif b.visitor %}{{ b.visitor.full_name }}
                                 (Visitor){% endif %}</span>
                             <span class="badge-agc ms-2">{{ b.group_size }}-ball</span>
                         </div>
                         <form method="POST" class="d-inline"
-                            onsubmit="return confirmAction(this, 'Remove this booking?')">
+                            onsubmit="return confirmAction(this, 'Remove this entire group booking?')">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="action" value="remove_booking">
                             <input type="hidden" name="booking_id" value="{{ b.id }}">
-                            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i></button>
+                            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Group</button>
                         </form>
                     </div>
+
+                    {% if b.players.count() > 0 %}
+                    <div class="border-top border-secondary pt-2 mt-2">
+                        <ul class="list-unstyled mb-0">
+                            {% for p in b.players %}
+                            <li class="d-flex justify-content-between align-items-center py-1">
+                                <span class="small text-muted"><i class="bi bi-person me-2"></i>{{ p.player_name }}
+                                    {% if p.handicap is not none %}({{ p.handicap | format_handicap }}){% endif %}
+                                </span>
+                                <form method="POST" class="d-inline"
+                                    onsubmit="return confirmAction(this, 'Remove {{ p.player_name }} from this group?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="remove_player">
+                                    <input type="hidden" name="player_id" value="{{ p.id }}">
+                                    <button class="btn btn-outline-warning btn-sm py-0 px-1" title="Remove Player"><i
+                                            class="bi bi-x"></i></button>
+                                </form>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
                 </div>
                 {% else %}<p class="text-muted">No bookings yet.</p>{% endfor %}
             </div>

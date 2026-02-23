@@ -39,9 +39,15 @@
                         <td>
                             {% if req.status == 'pending' %}
                             <form method="POST" action="{{ url_for('admin.approve_membership', req_id=req.id) }}"
-                                class="d-inline">
+                                class="d-inline-block border p-1 rounded mb-1 bg-dark">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button class="btn btn-success btn-sm"><i class="bi bi-check"></i></button>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" name="handicap" inputmode="decimal"
+                                        pattern="^[-+]?[0-9]*\\.?[0-9]+$" placeholder="HCP *" required
+                                        style="max-width: 70px;">
+                                    <button class="btn btn-success"><i class="bi bi-check" title="Approve"></i>
+                                        Approve</button>
+                                </div>
                             </form>
                             <form method="POST" action="{{ url_for('admin.reject_membership', req_id=req.id) }}"
                                 class="d-inline">

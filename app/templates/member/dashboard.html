@@ -66,14 +66,13 @@
                     <div class="text-muted small">
                         <i class="bi bi-calendar me-1"></i>{{ booking.tee_time.date.strftime('%A %d %B %Y') }}
                     </div>
-                    {% if booking.players.count() > 0 %}
                     <div class="mt-2 pt-2 border-top border-secondary">
                         <div class="small fw-bold mb-1 text-light"><i class="bi bi-people me-1"></i>Players:</div>
                         <ul class="list-unstyled mb-0 small text-muted">
-                            {% if booking.member_id != current_user.id %}
-                            <li>{{ booking.member.full_name }} {% if booking.member.handicap is not none %}({{
-                                booking.member.handicap | format_handicap }}){% endif %}</li>
-                            {% endif %}
+                            <li {% if booking.member_id==current_user.id %}class="text-light" {% endif %}>
+                                {{ booking.member.full_name }} {% if booking.member.handicap is not none %}({{
+                                booking.member.handicap | format_handicap }}){% endif %}
+                            </li>
                             {% for player in booking.players %}
                             <li {% if player.player_name==current_user.full_name %}class="text-light" {% endif %}>
                                 {{ player.player_name }} {% if player.handicap is not none %}({{ player.handicap |
@@ -82,7 +81,6 @@
                             {% endfor %}
                         </ul>
                     </div>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -123,6 +121,17 @@
                         <div class="text-muted small mt-1">
                             <i class="bi bi-calendar me-1"></i>{{ booking.comp_tee_time.competition.date.strftime('%A %d
                             %B %Y') }}
+                        </div>
+                        <div class="mt-2 pt-2 border-top border-secondary">
+                            <div class="small fw-bold mb-1 text-light"><i class="bi bi-people me-1"></i>Players:</div>
+                            <ul class="list-unstyled mb-0 small text-muted">
+                                {% for b in booking.comp_tee_time.bookings %}
+                                <li {% if b.member_id==current_user.id %}class="text-light" {% endif %}>
+                                    {{ b.member.full_name }} {% if b.member.handicap is not none %}({{ b.member.handicap
+                                    | format_handicap }}){% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
                         </div>
                     </div>
                 </a>

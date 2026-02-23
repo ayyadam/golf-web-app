@@ -18,30 +18,36 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label">First Name *</label>
-                        <input type="text" class="form-control" name="first_name" required>
+                        <input type="text" class="form-control" name="first_name"
+                            value="{{ form_data.get('first_name', '') if form_data else '' }}" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Last Name *</label>
-                        <input type="text" class="form-control" name="last_name" required>
+                        <input type="text" class="form-control" name="last_name"
+                            value="{{ form_data.get('last_name', '') if form_data else '' }}" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Email *</label>
-                        <input type="email" class="form-control" name="email" required>
+                        <input type="email" class="form-control" name="email"
+                            value="{{ form_data.get('email', '') if form_data else '' }}" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Telephone *</label>
-                        <input type="tel" class="form-control" name="telephone" required>
+                        <input type="tel" class="form-control" name="telephone"
+                            value="{{ form_data.get('telephone', '') if form_data else '' }}" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Handicap</label>
                         <input type="text" class="form-control" name="handicap" inputmode="decimal"
-                            pattern="^[-+]?[0-9]*\\.?[0-9]+$" placeholder="Optional">
+                            pattern="^[-+]?[0-9]*\.?[0-9]+$" placeholder="Required (e.g. 15.0 or +2.0)" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Membership Type</label>
                         <select class="form-select" name="membership_type">
-                            <option value="Full Year">Full Year</option>
-                            <option value="6 Month">6 Month</option>
+                            <option value="Full Year" {% if form_data and form_data.get('membership_type')=='Full Year'
+                                %}selected{% endif %}>Full Year</option>
+                            <option value="6 Month" {% if form_data and form_data.get('membership_type')=='6 Month'
+                                %}selected{% endif %}>6 Month</option>
                         </select>
                     </div>
                 </div>

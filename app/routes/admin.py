@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import current_user
 from ..extensions import db
 from ..models import (
-    Member, TeeTime, GeneralBooking,
+    Member, TeeTime, GeneralBooking, BookingPlayer,
     Competition, CompetitionTeeTime, CompetitionBooking,
     RangeTime, RangeBooking,
     Coach, CoachingTime, CoachingBooking,
@@ -73,6 +73,11 @@ def approve_membership(req_id):
         flash('This request has already been processed.', 'warning')
         return redirect(url_for('admin.membership_requests'))
 
+    handicap = _parse_hcp(request.form.get('handicap'))
+    if handicap is None or not (-10.0 <= handicap <= 54.0):
+        flash('A valid handicap between -10.0 and 54.0 must be provided to approve this membership.', 'danger')
+        return redirect(url_for('admin.membership_requests'))
+
     # Create member from request
     username = f"{req.first_name.lower()}.{req.last_name.lower()}"
     # Handle duplicate usernames
@@ -88,6 +93,7 @@ def approve_membership(req_id):
         email=req.email,
         telephone=req.telephone,
         username=username,
+        handicap=handicap,
         membership_type=req.membership_type,
         membership_start=date.today(),
     )
@@ -132,14 +138,16 @@ def manage_members():
         handicap = _parse_hcp(request.form.get('handicap'))
         membership_type = request.form.get('membership_type', 'Full Year')
 
-        if not all([first_name, last_name, email, telephone]):
-            flash('First name, last name, email, and telephone are required.', 'danger')
-            return redirect(url_for('admin.manage_members'))
+        if not all([first_name, last_name, email, telephone]) or handicap is None or not (-10.0 <= handicap <= 54.0):
+            flash('First name, last name, email, telephone, and a valid handicap (between -10.0 and 54.0) are required.', 'danger')
+            members = Member.query.order_by(Member.last_name).all()
+            return render_template('admin/members.html', members=members, form_data=request.form)
 
         # Check for duplicate email
         if Member.query.filter_by(email=email).first():
             flash('A member with this email already exists.', 'danger')
-            return redirect(url_for('admin.manage_members'))
+            members = Member.query.order_by(Member.last_name).all()
+            return render_template('admin/members.html', members=members, form_data=request.form)
 
         # Auto-generate username
         username = f"{first_name.lower()}.{last_name.lower()}"
@@ -200,7 +208,12 @@ def edit_member(member_id):
         member.last_name = request.form.get('last_name', member.last_name)
         member.email = request.form.get('email', member.email)
         member.telephone = request.form.get('telephone', member.telephone)
-        member.handicap = _parse_hcp(request.form.get('handicap'))
+        handicap = _parse_hcp(request.form.get('handicap'))
+        if handicap is not None and not (-10.0 <= handicap <= 54.0):
+            flash('Handicap must be between -10.0 and 54.0.', 'danger')
+            return redirect(url_for('admin.edit_member', member_id=member_id))
+            
+        member.handicap = handicap
         member.membership_type = request.form.get(
             'membership_type', member.membership_type
         )
@@ -289,6 +302,16 @@ def edit_tee_time(tt_id):
             db.session.delete(booking)
             db.session.commit()
             flash(f'Booking by {booker} removed.', 'success')
+            return redirect(url_for('admin.edit_tee_time', tt_id=tt_id))
+
+        elif action == 'remove_player':
+            player_id = request.form.get('player_id', type=int)
+            player = BookingPlayer.query.get_or_404(player_id)
+            player_name = player.player_name
+            player.booking.group_size -= 1
+            db.session.delete(player)
+            db.session.commit()
+            flash(f'Player "{player_name}" removed from the booking.', 'success')
             return redirect(url_for('admin.edit_tee_time', tt_id=tt_id))
 
         elif action == 'delete_tee_time':
