@@ -18,6 +18,63 @@
         </div>
         <div class="row g-4">
             <div class="col-lg-4">
+                <div class="card-glass p-4 mb-3" style="position: relative; overflow: visible; z-index: 100;">
+                    <h5 class="mb-3">Book Member</h5>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="add_booking">
+
+                        {% set ns = namespace(has_slots=false) %}
+                        {% for ctt in comp_tee_times %}
+                        {% if ctt.slots_remaining > 0 %}
+                        {% set ns.has_slots = true %}
+                        {% endif %}
+                        {% endfor %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Tee Time</label>
+                            <select class="form-select" name="ctt_id" required {% if not ns.has_slots %}disabled{% endif
+                                %}>
+                                {% if not ns.has_slots %}
+                                <option value="" disabled selected>No availability</option>
+                                {% endif %}
+                                {% for ctt in comp_tee_times %}
+                                {% if ctt.slots_remaining > 0 %}
+                                <option value="{{ ctt.id }}" data-slots="{{ ctt.slots_remaining }}">{{
+                                    ctt.time.strftime('%H:%M') }} ({{ ctt.slots_remaining }}
+                                    slots left)</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div id="booking_players_container">
+                            <div class="mb-3 position-relative player-search-row" data-index="0">
+                                <label class="form-label d-flex justify-content-between">
+                                    <span>Player 1</span>
+                                </label>
+                                <input type="hidden" class="booking_member_id" name="member_ids[]" required>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control pe-4 member-search" autocomplete="off"
+                                        placeholder="Search members..." required {% if not ns.has_slots %}disabled{%
+                                        endif %}>
+                                    <button type="button"
+                                        class="btn-close position-absolute top-50 end-0 translate-middle-y me-2 d-none clear-search"
+                                        aria-label="Clear"></button>
+                                </div>
+                                <ul class="dropdown-menu w-100 autocomplete-results" id="autocomplete_results_0"></ul>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-3" id="add_player_btn" {%
+                            if not ns.has_slots %}disabled{% endif %}>
+                            <i class="bi bi-plus-circle me-1"></i>Add Player
+                        </button>
+
+                        <button class="btn btn-agc w-100" {% if not ns.has_slots %}disabled{% endif %}><i
+                                class="bi bi-check-circle me-1"></i>Confirm Booking</button>
+                    </form>
+                </div>
                 <div class="card-glass p-4 mb-3">
                     <h5 class="mb-3">Add Tee Time</h5>
                     <form method="POST">
@@ -84,4 +141,165 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('booking_players_container');
+        const addPlayerBtn = document.getElementById('add_player_btn');
+        const teeTimeSelect = document.querySelector('select[name="ctt_id"]');
+        let playerIndex = 1; // 0 is initial
+
+        function updateAddPlayerButtonState() {
+            if (!teeTimeSelect || !addPlayerBtn || teeTimeSelect.disabled) return;
+            const selectedOption = teeTimeSelect.options[teeTimeSelect.selectedIndex];
+            if (!selectedOption || !selectedOption.dataset.slots) {
+                addPlayerBtn.disabled = true;
+                return;
+            }
+            const slotsRemaining = parseInt(selectedOption.dataset.slots, 10);
+            const currentPlayers = container.querySelectorAll('.player-search-row').length;
+            addPlayerBtn.disabled = currentPlayers >= slotsRemaining;
+        }
+
+        if (teeTimeSelect) {
+            teeTimeSelect.addEventListener('change', updateAddPlayerButtonState);
+            // Initial call
+            updateAddPlayerButtonState();
+        }
+
+        function attachAutocompleteEvents(row) {
+            const index = row.getAttribute('data-index');
+            const searchInput = row.querySelector('.member-search');
+            const hiddenInput = row.querySelector('.booking_member_id');
+            const clearBtn = row.querySelector('.clear-search');
+            const resultsUl = row.querySelector('.autocomplete-results');
+
+            // Clear selection
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                hiddenInput.value = '';
+                searchInput.readOnly = false;
+                clearBtn.classList.add('d-none');
+                resultsUl.classList.remove('show');
+                searchInput.focus();
+            });
+
+            // Search Autocomplete
+            searchInput.addEventListener('input', async function () {
+                const query = this.value.trim();
+
+                if (query.length > 0) {
+                    clearBtn.classList.remove('d-none');
+                } else {
+                    clearBtn.classList.add('d-none');
+                    hiddenInput.value = '';
+                }
+
+                if (query.length < 1) {
+                    resultsUl.classList.remove('show');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/member/api/members/search?q=${encodeURIComponent(query)}`);
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    const data = await response.json();
+
+                    resultsUl.innerHTML = '';
+
+                    // Get an array of all currently selected members across all inputs to filter them out
+                    const activeNames = Array.from(document.querySelectorAll('.member-search'))
+                        .filter(inp => inp !== searchInput && inp.value.trim() !== '')
+                        .map(inp => inp.value.trim().toLowerCase());
+
+                    if (data.members && data.members.length > 0) {
+                        const filteredMembers = data.members.filter(m => !activeNames.includes(m.name.toLowerCase()));
+
+                        if (filteredMembers.length > 0) {
+                            filteredMembers.forEach(member => {
+                                const li = document.createElement('li');
+
+                                const hcpDisplay = member.handicap !== null ?
+                                    (member.handicap < 0 ? '+' : '') + Math.abs(member.handicap).toFixed(1) : 'N/A';
+
+                                li.innerHTML = `<a class="dropdown-item" href="#" style="cursor:pointer">
+                                    <div class="fw-bold">${member.name}</div>
+                                    <small class="text-muted">Handicap: ${hcpDisplay}</small>
+                                </a>`;
+
+                                li.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    searchInput.value = member.name;
+                                    hiddenInput.value = member.id;
+                                    searchInput.readOnly = true;
+
+                                    clearBtn.classList.remove('d-none');
+                                    resultsUl.classList.remove('show');
+                                });
+
+                                resultsUl.appendChild(li);
+                            });
+                            resultsUl.classList.add('show');
+                        } else {
+                            resultsUl.classList.remove('show');
+                        }
+                    } else {
+                        resultsUl.classList.remove('show');
+                    }
+                } catch (error) {
+                    console.error('Error fetching members:', error);
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function (e) {
+                if (searchInput && resultsUl && !searchInput.contains(e.target) && !resultsUl.contains(e.target)) {
+                    resultsUl.classList.remove('show');
+                }
+            });
+        }
+
+        // Attach events to the initial row
+        attachAutocompleteEvents(container.querySelector('.player-search-row'));
+
+        // Handle Add Player Button
+        addPlayerBtn.addEventListener('click', () => {
+            const newRow = document.createElement('div');
+            newRow.className = 'mb-3 position-relative player-search-row mt-3 pt-3 border-top';
+            newRow.setAttribute('data-index', playerIndex);
+
+            newRow.innerHTML = `
+                <label class="form-label d-flex justify-content-between">
+                    <span>Player ${playerIndex + 1}</span>
+                    <button type="button" class="btn-close remove-player-btn" aria-label="Remove"></button>
+                </label>
+                <input type="hidden" class="booking_member_id" name="member_ids[]" required>
+                <div class="position-relative">
+                    <input type="text" class="form-control pe-4 member-search" autocomplete="off"
+                        placeholder="Search members..." required>
+                    <button type="button"
+                        class="btn-close position-absolute top-50 end-0 translate-middle-y me-2 d-none clear-search"
+                        aria-label="Clear"></button>
+                </div>
+                <ul class="dropdown-menu w-100 autocomplete-results" id="autocomplete_results_${playerIndex}"></ul>
+            `;
+
+            container.appendChild(newRow);
+
+            // Handle remove player
+            newRow.querySelector('.remove-player-btn').addEventListener('click', () => {
+                newRow.remove();
+                updateAddPlayerButtonState();
+            });
+
+            // Re-attach autocomplete logic to this new row explicitly
+            attachAutocompleteEvents(newRow);
+
+            playerIndex++;
+            updateAddPlayerButtonState();
+        });
+    });
+</script>
 {% endblock %}

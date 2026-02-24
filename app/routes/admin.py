@@ -412,6 +412,62 @@ def manage_comp_tee_times(comp_id):
             flash('Competition tee time deleted.', 'success')
             return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
 
+        elif action == 'add_booking':
+            ctt_id = request.form.get('ctt_id', type=int)
+            member_ids = request.form.getlist('member_ids[]')
+            
+            if not ctt_id or not member_ids:
+                flash('Missing tee time or member selection.', 'danger')
+                return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
+            
+            ctt = CompetitionTeeTime.query.get_or_404(ctt_id)
+
+            # Filter out empty member IDs if any
+            member_ids = [m_id for m_id in member_ids if m_id.strip()]
+            
+            if not member_ids:
+                flash('No valid members selected.', 'danger')
+                return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
+
+            if ctt.slots_remaining < len(member_ids):
+                flash(f'Not enough slots remaining. You tried to add {len(member_ids)} players, but only {ctt.slots_remaining} slots are left.', 'danger')
+                return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
+
+            all_ctt_ids = [t.id for t in competition.tee_times]
+            
+            members_to_add = []
+            
+            for m_id in member_ids:
+                member = Member.query.get(int(m_id))
+                if not member:
+                    flash('One or more selected members could not be found.', 'danger')
+                    return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
+                    
+                # Check if member is already booked in any tee time for this competition
+                existing_booking = CompetitionBooking.query.filter(
+                    CompetitionBooking.comp_tee_time_id.in_(all_ctt_ids),
+                    CompetitionBooking.member_id == member.id
+                ).first() if all_ctt_ids else None
+
+                if existing_booking:
+                    flash(f'Booking aborted. {member.full_name} is already booked in this competition.', 'danger')
+                    return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
+                
+                members_to_add.append(member)
+            
+            for member in members_to_add:
+                new_booking = CompetitionBooking(
+                    comp_tee_time_id=ctt.id,
+                    member_id=member.id
+                )
+                db.session.add(new_booking)
+                
+            db.session.commit()
+            
+            names_added = ", ".join([m.full_name for m in members_to_add])
+            flash(f'Added {names_added} to {ctt.time.strftime("%H:%M")} tee time.', 'success')
+            return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
+
         else:
             # Default: add a single tee time
             from datetime import time as dt_time
