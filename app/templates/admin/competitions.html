@@ -47,6 +47,8 @@
                             <a href="{{ url_for('admin.manage_comp_tee_times', comp_id=comp.id) }}"
                                 class="btn btn-outline-success btn-sm"><i class="bi bi-clock-history me-1"></i>Tee
                                 Times</a>
+                            <a href="{{ url_for('admin.edit_competition', comp_id=comp.id) }}"
+                                class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil-square"></i></a>
                             <form method="POST" class="d-inline"
                                 onsubmit="return confirmAction(this, 'Delete competition &quot;{{ comp.name }}&quot; and all its tee times and bookings? This cannot be undone.')">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

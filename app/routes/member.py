@@ -329,7 +329,18 @@ def competitions():
         Competition.date >= today,
         Competition.is_active == True  # noqa: E712
     ).order_by(Competition.date).all()
-    return render_template('member/competitions.html', competitions=upcoming)
+    
+    # Get user's bookings mapped by competition ID
+    user_bookings_query = CompetitionBooking.query.join(
+        CompetitionTeeTime
+    ).filter(
+        CompetitionBooking.member_id == current_user.id,
+        CompetitionTeeTime.competition_id.in_([c.id for c in upcoming]) if upcoming else False
+    ).all()
+    
+    user_bookings = {b.comp_tee_time.competition_id: b for b in user_bookings_query}
+    
+    return render_template('member/competitions.html', competitions=upcoming, user_bookings=user_bookings)
 
 
 @member_bp.route('/competitions/<int:comp_id>/book', methods=['GET', 'POST'])

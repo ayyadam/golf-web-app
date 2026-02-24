@@ -370,6 +370,24 @@ def manage_competitions():
     )
 
 
+@admin_bp.route('/competitions/<int:comp_id>/edit', methods=['GET', 'POST'])
+def edit_competition(comp_id):
+    """Edit an existing competition."""
+    comp = Competition.query.get_or_404(comp_id)
+
+    if request.method == 'POST':
+        comp.name = request.form.get('name')
+        comp.date = date.fromisoformat(request.form.get('date'))
+        comp.format = request.form.get('format')
+        comp.description = request.form.get('description', '')
+        
+        db.session.commit()
+        flash(f'Competition "{comp.name}" updated successfully.', 'success')
+        return redirect(url_for('admin.manage_competitions'))
+
+    return render_template('admin/edit_competition.html', comp=comp)
+
+
 @admin_bp.route('/competitions/<int:comp_id>/tee-times', methods=['GET', 'POST'])
 def manage_comp_tee_times(comp_id):
     """Manage competition tee times."""
