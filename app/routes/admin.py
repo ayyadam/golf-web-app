@@ -140,13 +140,13 @@ def manage_members():
 
         if not all([first_name, last_name, email, telephone]) or handicap is None or not (-10.0 <= handicap <= 54.0):
             flash('First name, last name, email, telephone, and a valid handicap (between -10.0 and 54.0) are required.', 'danger')
-            members = Member.query.order_by(Member.last_name).all()
+            members = Member.query.order_by(Member.is_admin.desc(), Member.last_name).all()
             return render_template('admin/members.html', members=members, form_data=request.form)
 
         # Check for duplicate email
         if Member.query.filter_by(email=email).first():
             flash('A member with this email already exists.', 'danger')
-            members = Member.query.order_by(Member.last_name).all()
+            members = Member.query.order_by(Member.is_admin.desc(), Member.last_name).all()
             return render_template('admin/members.html', members=members, form_data=request.form)
 
         # Auto-generate username
@@ -178,7 +178,7 @@ def manage_members():
         )
         return redirect(url_for('admin.manage_members'))
 
-    members = Member.query.order_by(Member.last_name).all()
+    members = Member.query.order_by(Member.is_admin.desc(), Member.last_name).all()
     return render_template('admin/members.html', members=members)
 
 
