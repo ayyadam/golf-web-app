@@ -29,6 +29,9 @@ body {
     background-color: var(--agc-dark);
     color: var(--agc-text);
     line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
 h1,
@@ -681,4 +684,26 @@ h6 {
     display: flex;
     gap: 0.75rem;
     justify-content: flex-end;
+}
+
+/* ── Responsive Mobile Fixes ───────────────────────────────────────────── */
+@media (max-width: 576px) {
+    .stat-card {
+        padding: 1rem 0.5rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.8rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.75rem;
+    }
+
+    /* Scorecard tight layout */
+    .scorecard-table table th,
+    .scorecard-table table td {
+        padding: 0.35rem 0.15rem !important;
+        font-size: 0.7rem;
+    }
 }
