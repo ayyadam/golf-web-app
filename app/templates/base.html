@@ -33,7 +33,7 @@
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('public.home') }}">
                 <i class="bi bi-flag-fill text-success me-2"></i>
-                <span class="brand-text">Adam's Golf Club</span>
+                <span id="adams-golf-club" class="brand-text">Adam's Golf Club</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
@@ -41,22 +41,22 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('public.course_overview') }}">
+                        <a id="course-overview-link" class="nav-link" href="{{ url_for('public.course_overview') }}">
                             <i class="bi bi-geo-alt me-1"></i>The Course
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('public.scorecard') }}">
+                        <a id="scorecard-link" class="nav-link" href="{{ url_for('public.scorecard') }}">
                             <i class="bi bi-card-text me-1"></i>Scorecard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('public.membership') }}">
+                        <a id="membership-link" class="nav-link" href="{{ url_for('public.membership') }}">
                             <i class="bi bi-person-badge me-1"></i>Membership
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <a id="facilities-link" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-building me-1"></i>Facilities
                         </a>
                         <ul class="dropdown-menu">
@@ -72,7 +72,7 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('visitor.book_tee_time') }}">
+                        <a id="visitor-booking-link" class="nav-link" href="{{ url_for('visitor.book_tee_time') }}">
                             <i class="bi bi-calendar-plus me-1"></i>Visitor Booking
                         </a>
                     </li>
@@ -87,7 +87,7 @@
                     </li>
                     {% endif %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <a id="user-link" class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle me-1"></i>{{ current_user.first_name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
@@ -100,14 +100,16 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                            <li><a id="logout-link" class="dropdown-item text-danger"
+                                    href="{{ url_for('auth.logout') }}">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </a></li>
                         </ul>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="btn btn-outline-success btn-sm ms-2 mt-1" href="{{ url_for('auth.login') }}">
+                        <a id="member-login-link" class="btn btn-outline-success btn-sm ms-2 mt-1"
+                            href="{{ url_for('auth.login') }}">
                             <i class="bi bi-box-arrow-in-right me-1"></i>Member Login
                         </a>
                     </li>
