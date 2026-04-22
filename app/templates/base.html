@@ -60,13 +60,15 @@
                             <i class="bi bi-building me-1"></i>Facilities
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('public.trackman') }}">
+                            <li><a id="trackman-range-link" class="dropdown-item"
+                                    href="{{ url_for('public.trackman') }}">
                                     <i class="bi bi-bullseye me-2"></i>Trackman Range
                                 </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('public.practice') }}">
+                            <li><a id="practice-area-link" class="dropdown-item"
+                                    href="{{ url_for('public.practice') }}">
                                     <i class="bi bi-circle me-2"></i>Practice Area
                                 </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('public.coaching') }}">
+                            <li><a id="coaching-link" class="dropdown-item" href="{{ url_for('public.coaching') }}">
                                     <i class="bi bi-mortarboard me-2"></i>Coaching
                                 </a></li>
                         </ul>
@@ -125,7 +127,7 @@
     <div class="flash-container" style="margin-top: 76px;">
         {% for category, message in messages %}
         <div class="alert alert-{{ category }} alert-dismissible fade show m-0 rounded-0" role="alert">
-            <div class="container">
+            <div id="message" class="container">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
