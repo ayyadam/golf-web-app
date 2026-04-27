@@ -5,7 +5,7 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="bi bi-calendar-plus me-2 text-success"></i>Book a Tee Time</h2>
-            <a href="{{ url_for('member.dashboard') }}" class="btn btn-outline-success btn-sm">
+            <a id="dashboard-link" href="{{ url_for('member.dashboard') }}" class="btn btn-outline-success btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Dashboard
             </a>
         </div>
@@ -88,27 +88,29 @@
             {% endfor %}
         </div>
 
-        <input type="hidden" name="tee_time_id" id="selectedTeeTime" form="mainBookingForm">
-
-        <form method="POST" id="mainBookingForm">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div id="bookingForm" class="card-glass p-4" style="display:none; overflow: visible;">
-                <h5 class="mb-3">Booking Details</h5>
-                <div class="mb-3">
-                    <label class="form-label" for="groupSize">Group Size</label>
-                    <select class="form-select" id="groupSize" name="group_size" style="max-width: 200px;">
-                        <option value="1">1 - Single</option>
-                        <option value="2">2 - Two-ball</option>
-                        <option value="3">3 - Three-ball</option>
-                        <option value="4">4 - Four-ball</option>
-                    </select>
+        <!-- Booking form — JS will reposition this after the correct visual row -->
+        <div id="bookingFormWrapper" class="col-12 booking-form-wrapper">
+            <form method="POST" id="mainBookingForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="tee_time_id" id="selectedTeeTime">
+                <div id="bookingForm" class="card-glass p-4 mt-2" style="overflow: visible;">
+                    <h5 class="mb-3">Booking Details</h5>
+                    <div class="mb-3">
+                        <label class="form-label" for="groupSize">Group Size</label>
+                        <select class="form-select" id="groupSize" name="group_size" style="max-width: 200px;">
+                            <option value="1">1 - Single</option>
+                            <option value="2">2 - Two-ball</option>
+                            <option value="3">3 - Three-ball</option>
+                            <option value="4">4 - Four-ball</option>
+                        </select>
+                    </div>
+                    <div id="additionalPlayers"></div>
+                    <button type="submit" class="btn btn-agc">
+                        <i class="bi bi-check-circle me-2"></i>Confirm Booking
+                    </button>
                 </div>
-                <div id="additionalPlayers"></div>
-                <button type="submit" class="btn btn-agc">
-                    <i class="bi bi-check-circle me-2"></i>Confirm Booking
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
         {% else %}
         <div class="card-glass p-4 text-center">
             <p class="text-muted mb-0">No tee times available for this date.</p>
@@ -124,7 +126,28 @@
         document.querySelectorAll('.booking-slot').forEach(s => s.style.borderColor = '');
         el.style.borderColor = 'var(--agc-green)';
         document.getElementById('selectedTeeTime').value = id;
-        document.getElementById('bookingForm').style.display = 'block';
+
+        const wrapper = document.getElementById('bookingFormWrapper');
+        const row = el.closest('.row');
+        const slots = Array.from(row.querySelectorAll(':scope > .col-md-6'));
+        const clickedCol = el.closest('.col-md-6');
+        const clickedIndex = slots.indexOf(clickedCol);
+
+        const vw = window.innerWidth;
+        const cols = vw >= 992 ? 3 : vw >= 768 ? 2 : 1;
+
+        const rowEnd = Math.min(
+            Math.ceil((clickedIndex + 1) / cols) * cols - 1,
+            slots.length - 1
+        );
+        const anchorSlot = slots[rowEnd];
+
+        anchorSlot.after(wrapper);
+        wrapper.classList.remove('show');
+        void wrapper.offsetHeight;
+        wrapper.classList.add('show');
+
+        setTimeout(() => wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
     }
 </script>
 {% endblock %}

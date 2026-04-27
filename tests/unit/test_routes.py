@@ -10,27 +10,27 @@ class TestPublicRoutes:
         assert b"Adam's Golf Club" in resp.data
 
     def test_course_page(self, client):
-        resp = client.get('/course/')
+        resp = client.get('/course')
         assert resp.status_code == 200
 
     def test_scorecard_page(self, client):
-        resp = client.get('/scorecard/')
+        resp = client.get('/course/scorecard')
         assert resp.status_code == 200
 
     def test_membership_page(self, client):
-        resp = client.get('/membership/')
+        resp = client.get('/membership')
         assert resp.status_code == 200
 
     def test_trackman_page(self, client):
-        resp = client.get('/facilities/trackman/')
+        resp = client.get('/trackman')
         assert resp.status_code == 200
 
     def test_practice_page(self, client):
-        resp = client.get('/facilities/practice/')
+        resp = client.get('/practice')
         assert resp.status_code == 200
 
     def test_coaching_page(self, client):
-        resp = client.get('/coaching/')
+        resp = client.get('/coaching')
         assert resp.status_code == 200
 
     def test_login_page(self, client):
@@ -69,7 +69,7 @@ class TestProtectedRoutes:
         assert resp.status_code in (302, 401)
 
     def test_admin_dashboard_requires_login(self, client):
-        resp = client.get('/admin/', follow_redirects=False)
+        resp = client.get('/admin/dashboard', follow_redirects=False)
         assert resp.status_code in (302, 401)
 
     def test_member_can_access_dashboard(self, auth_client):
@@ -77,9 +77,9 @@ class TestProtectedRoutes:
         assert resp.status_code == 200
 
     def test_admin_can_access_admin(self, admin_client):
-        resp = admin_client.get('/admin/')
+        resp = admin_client.get('/admin/dashboard')
         assert resp.status_code == 200
 
     def test_member_cannot_access_admin(self, auth_client):
-        resp = auth_client.get('/admin/', follow_redirects=False)
+        resp = auth_client.get('/admin/dashboard', follow_redirects=False)
         assert resp.status_code in (302, 403)

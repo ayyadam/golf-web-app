@@ -55,34 +55,35 @@
                 {% endfor %}
             </div>
 
-            <input type="hidden" name="tee_time_id" id="visitorSelectedTee">
-
-            <div id="visitorForm" class="card-glass p-4" style="display:none;">
-                <h5 class="mb-3">Your Details</h5>
-                <div class="row g-3">
-                    <div class="col-md-6"><label class="form-label">First Name</label><input type="text"
-                            class="form-control" name="first_name" required></div>
-                    <div class="col-md-6"><label class="form-label">Last Name</label><input type="text"
-                            class="form-control" name="last_name" required></div>
-                    <div class="col-md-6"><label class="form-label">Email</label><input type="email"
-                            class="form-control" name="email" required></div>
-                    <div class="col-md-6"><label class="form-label">Telephone</label><input type="tel"
-                            class="form-control" name="telephone" required></div>
-                    <div class="col-md-6">
-                        <label class="form-label">Group Size</label>
-                        <select class="form-select" name="group_size">
-                            <option value="1">1 - Single</option>
-                            <option value="2">2 - Two-ball</option>
-                            <option value="3">3 - Three-ball</option>
-                            <option value="4">4 - Four-ball</option>
-                        </select>
+            <!-- Booking form — JS will reposition this after the correct visual row -->
+            <div id="visitorFormWrapper" class="col-12 booking-form-wrapper">
+                <input type="hidden" name="tee_time_id" id="visitorSelectedTee">
+                <div id="visitorForm" class="card-glass p-4 mt-2">
+                    <h5 class="mb-3">Your Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">First Name</label><input type="text"
+                                class="form-control" name="first_name" required></div>
+                        <div class="col-md-6"><label class="form-label">Last Name</label><input type="text"
+                                class="form-control" name="last_name" required></div>
+                        <div class="col-md-6"><label class="form-label">Email</label><input type="email"
+                                class="form-control" name="email" required></div>
+                        <div class="col-md-6"><label class="form-label">Telephone</label><input type="tel"
+                                class="form-control" name="telephone" required></div>
+                        <div class="col-md-6">
+                            <label class="form-label">Group Size</label>
+                            <select class="form-select" name="group_size">
+                                <option value="1">1 - Single</option>
+                                <option value="2">2 - Two-ball</option>
+                                <option value="3">3 - Three-ball</option>
+                                <option value="4">4 - Four-ball</option>
+                            </select>
+                        </div>
+                        <div class="col-12"><button type="submit" class="btn btn-agc"><i
+                                    class="bi bi-check-circle me-2"></i>Confirm Booking</button></div>
                     </div>
-                    <div class="col-12"><button type="submit" class="btn btn-agc"><i
-                                class="bi bi-check-circle me-2"></i>Confirm Booking</button></div>
                 </div>
             </div>
         </form>
-        {% else %}
         <div class="card-glass p-4 text-center">
             <p class="text-muted mb-0">No tee times available for this date.</p>
         </div>
@@ -97,7 +98,34 @@
         document.querySelectorAll('.booking-slot').forEach(s => s.style.borderColor = '');
         el.style.borderColor = 'var(--agc-green)';
         document.getElementById('visitorSelectedTee').value = id;
-        document.getElementById('visitorForm').style.display = 'block';
+
+        const wrapper = document.getElementById('visitorFormWrapper');
+        const row = el.closest('.row');
+        // Get only the tee-time slot columns (exclude the form wrapper itself)
+        const slots = Array.from(row.querySelectorAll(':scope > .col-md-6'));
+        const clickedCol = el.closest('.col-md-6');
+        const clickedIndex = slots.indexOf(clickedCol);
+
+        // Determine columns per row from viewport width
+        const vw = window.innerWidth;
+        const cols = vw >= 992 ? 3 : vw >= 768 ? 2 : 1;
+
+        // Find last slot in this visual row
+        const rowEnd = Math.min(
+            Math.ceil((clickedIndex + 1) / cols) * cols - 1,
+            slots.length - 1
+        );
+        const anchorSlot = slots[rowEnd];
+
+        // Insert wrapper right after the anchor slot
+        anchorSlot.after(wrapper);
+        wrapper.classList.remove('show');
+        // Force reflow then animate
+        void wrapper.offsetHeight;
+        wrapper.classList.add('show');
+
+        // Smooth scroll so form is visible
+        setTimeout(() => wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
     }
 </script>
 {% endblock %}

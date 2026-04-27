@@ -463,6 +463,34 @@ h6 {
     color: var(--agc-text-muted);
 }
 
+/* ── Inline Booking Form ──────────────────────────────────────────────── */
+.booking-form-wrapper {
+    display: none;
+    overflow: hidden;
+}
+
+.booking-form-wrapper.show {
+    display: block;
+    animation: slideDown 0.35s ease forwards;
+}
+
+.booking-form-wrapper .card-glass:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    to {
+        opacity: 1;
+        max-height: 800px;
+    }
+}
+
 /* ── Autocomplete Dropdown ────────────────────────────────────────────── */
 .autocomplete-results {
     background: var(--agc-dark-card);

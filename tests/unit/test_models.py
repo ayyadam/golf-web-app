@@ -44,6 +44,7 @@ class TestMemberModel:
             first_name='Hcp', last_name='Test', telephone='07700900055',
             membership_type='Full Year', handicap=14.3,
         )
+        member.set_password('testpass123')
         db.session.add(member)
         db.session.commit()
 

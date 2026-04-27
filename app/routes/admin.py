@@ -257,9 +257,13 @@ def manage_tee_times():
 
         else:
             # Create a single custom tee time
-            tee_date = request.form.get('date')
-            tee_time = request.form.get('time')
+            tee_date_str = request.form.get('date')
+            tee_time_str = request.form.get('time')
             max_players = request.form.get('max_players', 4, type=int)
+
+            from datetime import datetime
+            tee_date = datetime.strptime(tee_date_str, '%Y-%m-%d').date() if tee_date_str else date.today()
+            tee_time = datetime.strptime(tee_time_str, '%H:%M').time() if tee_time_str else datetime.now().time()
 
             new_tee_time = TeeTime(
                 date=tee_date,
@@ -564,12 +568,19 @@ def manage_range():
             return redirect(url_for('admin.manage_range', date=date_str))
             
         else:
-            range_time = RangeTime(
-                date=request.form.get('date'),
-                time=request.form.get('time'),
+            from datetime import datetime
+            range_date_str = request.form.get('date')
+            range_time_str = request.form.get('time')
+            
+            range_date = datetime.strptime(range_date_str, '%Y-%m-%d').date() if range_date_str else date.today()
+            range_time = datetime.strptime(range_time_str, '%H:%M').time() if range_time_str else datetime.now().time()
+
+            range_time_obj = RangeTime(
+                date=range_date,
+                time=range_time,
                 bay_number=request.form.get('bay_number', type=int),
             )
-            db.session.add(range_time)
+            db.session.add(range_time_obj)
             db.session.commit()
             flash('Range time created.', 'success')
             return redirect(url_for('admin.manage_range'))

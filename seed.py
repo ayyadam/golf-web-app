@@ -29,9 +29,9 @@ def seed():
                 is_admin=True,
                 is_active=True,
             )
-            admin.set_password('Lightning1')
+            admin.set_password('Admin123')
             db.session.add(admin)
-            print("  [OK] Admin user created (adam.nance / Lightning1)")
+            print(f"  [OK] Admin user created (adam.nance / Admin123)")
 
         # ── Sample members ──────────────────────────────────────
         members_data = [
