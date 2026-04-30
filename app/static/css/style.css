@@ -735,3 +735,100 @@ h6 {
         font-size: 0.7rem;
     }
 }
+
+/* ── Flatpickr Custom Theme for Adam's Golf Club ──────────────────────── */
+.flatpickr-calendar {
+    background: var(--agc-dark-card) !important;
+    border: 1px solid var(--agc-dark-border) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+.flatpickr-calendar.arrowTop:before {
+    border-bottom-color: var(--agc-dark-border) !important;
+}
+
+.flatpickr-calendar.arrowTop:after {
+    border-bottom-color: var(--agc-dark-card) !important;
+}
+
+.flatpickr-calendar.arrowBottom:before {
+    border-top-color: var(--agc-dark-border) !important;
+}
+
+.flatpickr-calendar.arrowBottom:after {
+    border-top-color: var(--agc-dark-card) !important;
+}
+
+.flatpickr-months .flatpickr-month {
+    background: var(--agc-dark-card) !important;
+    color: var(--agc-text) !important;
+    fill: var(--agc-text) !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: var(--agc-dark-card) !important;
+    color: var(--agc-text) !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+    background: rgba(45, 138, 78, 0.15) !important;
+}
+
+.flatpickr-current-month input.cur-year {
+    color: var(--agc-text) !important;
+}
+
+.flatpickr-weekdays {
+    background: var(--agc-dark-card) !important;
+}
+
+span.flatpickr-weekday {
+    color: var(--agc-text-muted) !important;
+    font-weight: 600;
+}
+
+.flatpickr-day {
+    color: var(--agc-text) !important;
+    border-radius: 8px !important;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+    background: rgba(45, 138, 78, 0.15) !important;
+    border-color: rgba(45, 138, 78, 0.3) !important;
+    color: var(--agc-green-light) !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:focus,
+.flatpickr-day.selected:hover,
+.flatpickr-day.selected.prevMonthDay,
+.flatpickr-day.selected.nextMonthDay {
+    background: var(--agc-gradient) !important;
+    border-color: var(--agc-green) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(45, 138, 78, 0.3) !important;
+}
+
+.flatpickr-day.today {
+    border-color: var(--agc-gold-light) !important;
+}
+
+.flatpickr-day.today:hover,
+.flatpickr-day.today:focus {
+    border-color: var(--agc-gold) !important;
+    background: rgba(196, 163, 90, 0.1) !important;
+    color: var(--agc-gold-light) !important;
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay,
+.flatpickr-day.notAllowed,
+.flatpickr-day.notAllowed.prevMonthDay,
+.flatpickr-day.notAllowed.nextMonthDay {
+    color: rgba(139, 148, 158, 0.4) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+}

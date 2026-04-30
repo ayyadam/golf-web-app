@@ -192,4 +192,62 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // ── Initialize Flatpickr for date inputs ────────────────────────────
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    if (dateInputs.length > 0) {
+        dateInputs.forEach(input => {
+            // Check if the input has an inline onchange handler
+            const hasInlineChange = input.hasAttribute('onchange');
+
+            flatpickr(input, {
+                dateFormat: "Y-m-d", // Server format
+                altInput: true,      // Create a visual text input
+                altFormat: "d/m/Y",  // Visual format: DD/MM/YYYY
+                allowInput: true,    // Allow keyboard typing and pasting
+                minDate: input.getAttribute('min') || null,
+                maxDate: input.getAttribute('max') || null,
+                onReady: function (selectedDates, dateStr, instance) {
+                    const btnWrapper = document.createElement("div");
+                    btnWrapper.style.padding = "10px";
+                    btnWrapper.style.borderTop = "1px solid var(--agc-dark-border)";
+
+                    const todayBtn = document.createElement("button");
+                    todayBtn.type = "button";
+                    todayBtn.className = "btn btn-agc-outline btn-sm w-100";
+                    todayBtn.innerHTML = "<i class='bi bi-calendar-check me-1'></i> Today";
+
+                    todayBtn.addEventListener("click", function () {
+                        instance.setDate(new Date(), true);
+                        instance.close();
+                    });
+
+                    btnWrapper.appendChild(todayBtn);
+                    instance.calendarContainer.appendChild(btnWrapper);
+                },
+                onChange: function (selectedDates, dateStr, instance) {
+                    // Trigger native onchange inline attribute if present
+                    // This ensures `this.form.submit()` works when date is picked/typed
+                    if (hasInlineChange && instance.element.onchange) {
+                        instance.element.onchange();
+                    } else {
+                        // Dispatch generic change event
+                        instance.element.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            });
+
+            // Fix: ensure the Flatpickr text input allows pasting DD/MM/YYYY formats seamlessly
+            // and submits on enter.
+            if (input.nextElementSibling && input.nextElementSibling.classList.contains('form-control')) {
+                const altInput = input.nextElementSibling;
+                altInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (input.form) input.form.submit();
+                    }
+                });
+            }
+        });
+    }
 });
