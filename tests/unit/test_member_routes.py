@@ -1,8 +1,7 @@
 """Unit tests for member routes."""
-from datetime import date
 from app.models import (
-    Member, GeneralBooking, BookingPlayer,
-    CompetitionBooking, RangeBooking, CoachingBooking
+    Member, GeneralBooking, CompetitionBooking,
+    RangeBooking, CoachingBooking
 )
 
 
@@ -29,7 +28,7 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Tee time booked successfully' in resp.data
-        
+
         booking = GeneralBooking.query.filter_by(tee_time_id=tee_time.id).first()
         assert booking is not None
         assert booking.member_id == member_user.id
@@ -42,15 +41,15 @@ class TestMemberRoutes:
             'player_1_handicap': '20.0'
         }, follow_redirects=True)
         assert resp.status_code == 200
-        
+
         booking = GeneralBooking.query.filter_by(tee_time_id=tee_time.id).first()
         assert booking is not None
         assert booking.group_size == 2
         assert booking.players.count() == 1
 
-    def test_book_tee_time_not_enough_slots(self, auth_client, tee_time):
+    def test_book_tee_time_not_enough_slots(self, auth_client, tee_time, visitor):
         # Fill the tee time
-        booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=1, group_size=4)
+        booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=visitor.id, group_size=4)
         from app.extensions import db
         db.session.add(booking)
         db.session.commit()
@@ -95,7 +94,7 @@ class TestMemberRoutes:
         m.set_password('pw')
         db.session.add(m)
         db.session.commit()
-        
+
         resp = auth_client.get('/member/api/members/search?q=John')
         assert resp.status_code == 200
         data = resp.json
@@ -129,16 +128,29 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Competition tee time booked' in resp.data
-        
+
         booking = CompetitionBooking.query.filter_by(comp_tee_time_id=comp_tee_time.id).first()
         assert booking is not None
         assert booking.member_id == member_user.id
 
     def test_book_competition_full(self, auth_client, comp_tee_time):
-        # Fill it up
+        # Fill it up with 3 throwaway members (FK enforcement requires real member rows)
         from app.extensions import db
+        from app.models import Member
         for i in range(3):
-            db.session.add(CompetitionBooking(comp_tee_time_id=comp_tee_time.id, member_id=i+100))
+            filler = Member(
+                username=f'filler{i}',
+                email=f'filler{i}@test.com',
+                first_name=f'Filler{i}',
+                last_name='Test',
+                telephone=f'07700{i:06d}',
+                membership_type='Full Year',
+                is_active=True,
+            )
+            filler.set_password('fillerpass')
+            db.session.add(filler)
+            db.session.flush()
+            db.session.add(CompetitionBooking(comp_tee_time_id=comp_tee_time.id, member_id=filler.id))
         db.session.commit()
 
         resp = auth_client.post(f'/member/competitions/{comp_tee_time.competition_id}/book', data={
@@ -169,9 +181,9 @@ class TestMemberRoutes:
         assert b'booking has been cancelled' in resp.data
         assert GeneralBooking.query.get(b.id) is None
 
-    def test_cancel_general_booking_unauthorized(self, auth_client, tee_time):
+    def test_cancel_general_booking_unauthorized(self, auth_client, tee_time, other_member):
         from app.extensions import db
-        b = GeneralBooking(tee_time_id=tee_time.id, member_id=999)
+        b = GeneralBooking(tee_time_id=tee_time.id, member_id=other_member.id)
         db.session.add(b)
         db.session.commit()
 
@@ -189,14 +201,14 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Successfully booked' in resp.data
-        
+
         booking = RangeBooking.query.filter_by(range_time_id=range_time.id).first()
         assert booking is not None
         assert booking.member_id == member_user.id
 
-    def test_book_range_already_booked_slot(self, auth_client, range_time):
+    def test_book_range_already_booked_slot(self, auth_client, range_time, visitor):
         from app.extensions import db
-        db.session.add(RangeBooking(range_time_id=range_time.id, visitor_id=1))
+        db.session.add(RangeBooking(range_time_id=range_time.id, visitor_id=visitor.id))
         db.session.commit()
 
         resp = auth_client.post('/member/book-range', data={
@@ -210,7 +222,7 @@ class TestMemberRoutes:
         from app.models import RangeTime
         # User already has bay 1
         db.session.add(RangeBooking(range_time_id=range_time.id, member_id=member_user.id))
-        
+
         # Try to book bay 2 at same time
         rt2 = RangeTime(date=range_time.date, time=range_time.time, bay_number=2, is_available=True)
         db.session.add(rt2)
@@ -232,9 +244,9 @@ class TestMemberRoutes:
         assert resp.status_code == 200
         assert b'cancelled' in resp.data
 
-    def test_cancel_range_booking_unauthorized(self, auth_client, range_time):
+    def test_cancel_range_booking_unauthorized(self, auth_client, range_time, other_member):
         from app.extensions import db
-        b = RangeBooking(range_time_id=range_time.id, member_id=999)
+        b = RangeBooking(range_time_id=range_time.id, member_id=other_member.id)
         db.session.add(b)
         db.session.commit()
 
@@ -252,14 +264,14 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Coaching lesson booked' in resp.data
-        
+
         booking = CoachingBooking.query.filter_by(coaching_time_id=coaching_time.id).first()
         assert booking is not None
         assert booking.member_id == member_user.id
 
-    def test_book_coaching_already_taken(self, auth_client, coaching_time):
+    def test_book_coaching_already_taken(self, auth_client, coaching_time, visitor):
         from app.extensions import db
-        db.session.add(CoachingBooking(coaching_time_id=coaching_time.id, visitor_id=1))
+        db.session.add(CoachingBooking(coaching_time_id=coaching_time.id, visitor_id=visitor.id))
         db.session.commit()
 
         resp = auth_client.post(f'/member/coaching/{coaching_time.coach_id}/book', data={
@@ -280,7 +292,7 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'details have been successfully updated' in resp.data
-        
+
         from app.extensions import db
         db.session.refresh(member_user)
         assert member_user.email == 'new@test.com'

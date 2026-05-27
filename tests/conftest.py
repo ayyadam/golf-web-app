@@ -1,15 +1,27 @@
 """Shared test fixtures for the Adam's Golf Club test suite."""
+import sqlite3
 import pytest
 from datetime import date, time, timedelta
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 from app import create_app
 from app.extensions import db as _db
 from app.models import (
-    Member, TeeTime, GeneralBooking, BookingPlayer,
-    Competition, CompetitionTeeTime, CompetitionBooking,
-    RangeTime, RangeBooking,
-    Coach, CoachingTime, CoachingBooking,
-    Visitor, MembershipRequest
+    Member, TeeTime, Competition, CompetitionTeeTime,
+    RangeTime, Coach, CoachingTime,
+    Visitor
 )
+
+
+@event.listens_for(Engine, "connect")
+def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record):
+    # Postgres enforces FKs by default; SQLite does not unless told to.
+    # Enabling here gives local SQLite test runs parity with the Postgres
+    # CI service, surfacing FK violations that would otherwise pass silently.
+    if isinstance(dbapi_connection, sqlite3.Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 @pytest.fixture(scope='session')
@@ -68,6 +80,25 @@ def member_user(db):
         is_active=True,
     )
     user.set_password('testpass123')
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
+def other_member(db):
+    """A second member, used in 'another user' / 'unauthorized' scenarios."""
+    user = Member(
+        username='othermember',
+        email='other@test.com',
+        first_name='Other',
+        last_name='Member',
+        telephone='07700900077',
+        membership_type='Full Year',
+        handicap=10.0,
+        is_active=True,
+    )
+    user.set_password('otherpass123')
     db.session.add(user)
     db.session.commit()
     return user

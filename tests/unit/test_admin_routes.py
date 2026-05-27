@@ -1,5 +1,4 @@
 """Unit tests for admin routes."""
-from datetime import date
 from app.models import Member, MembershipRequest, TeeTime, Competition, RangeTime, Coach
 
 
@@ -33,7 +32,7 @@ class TestAdminRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Membership approved' in resp.data
-        
+
         db.session.refresh(req)
         assert req.status == 'approved'
         assert Member.query.filter_by(email='req@test.com').first() is not None
@@ -46,12 +45,12 @@ class TestAdminRoutes:
         db.session.add(req)
         db.session.commit()
 
-        resp = admin_client.post(f'/admin/membership-requests/{req.id}/approve', data={
-            'handicap': '99.0' # Invalid handicap
+        admin_client.post(f'/admin/membership-requests/{req.id}/approve', data={
+            'handicap': '99.0'  # Invalid handicap
         }, follow_redirects=True)
-        
+
         db.session.refresh(req)
-        assert req.status == 'pending' # Should not be approved
+        assert req.status == 'pending'  # Should not be approved
 
     def test_reject_membership_request(self, admin_client, db):
         req = MembershipRequest(
@@ -61,8 +60,8 @@ class TestAdminRoutes:
         db.session.add(req)
         db.session.commit()
 
-        resp = admin_client.post(f'/admin/membership-requests/{req.id}/reject', follow_redirects=True)
-        
+        admin_client.post(f'/admin/membership-requests/{req.id}/reject', follow_redirects=True)
+
         db.session.refresh(req)
         assert req.status == 'rejected'
 

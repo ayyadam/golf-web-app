@@ -17,7 +17,6 @@ member_bp = Blueprint('member', __name__)
 @login_required
 def require_login():
     """All member routes require authentication."""
-    pass
 
 
 @member_bp.route('/dashboard')
@@ -35,7 +34,8 @@ def dashboard():
         ),
         TeeTime.date >= today
     ).order_by(TeeTime.date, TeeTime.time).all()
-    upcoming_bookings = [b for b in upcoming_bookings if not (b.tee_time.date == today and b.tee_time.time < current_time)]
+    upcoming_bookings = [b for b in upcoming_bookings if not (
+        b.tee_time.date == today and b.tee_time.time < current_time)]
 
     # Competitions
     upcoming_comp_bookings = CompetitionBooking.query.join(
@@ -44,7 +44,8 @@ def dashboard():
         CompetitionBooking.member_id == current_user.id,
         Competition.date >= today
     ).order_by(Competition.date).all()
-    upcoming_comp_bookings = [b for b in upcoming_comp_bookings if not (b.comp_tee_time.competition.date == today and b.comp_tee_time.time < current_time)]
+    upcoming_comp_bookings = [b for b in upcoming_comp_bookings if not (
+        b.comp_tee_time.competition.date == today and b.comp_tee_time.time < current_time)]
 
     # Coaching
     upcoming_coaching = CoachingBooking.query.join(
@@ -53,8 +54,9 @@ def dashboard():
         CoachingBooking.member_id == current_user.id,
         CoachingTime.date >= today
     ).order_by(CoachingTime.date, CoachingTime.time).all()
-    upcoming_coaching = [b for b in upcoming_coaching if not (b.coaching_time.date == today and b.coaching_time.time < current_time)]
-    
+    upcoming_coaching = [b for b in upcoming_coaching if not (
+        b.coaching_time.date == today and b.coaching_time.time < current_time)]
+
     # Range Bays
     upcoming_range_bookings = RangeBooking.query.join(
         RangeTime
@@ -62,7 +64,8 @@ def dashboard():
         RangeBooking.member_id == current_user.id,
         RangeTime.date >= today
     ).order_by(RangeTime.date, RangeTime.time).all()
-    upcoming_range_bookings = [b for b in upcoming_range_bookings if not (b.range_time.date == today and b.range_time.time < current_time)]
+    upcoming_range_bookings = [b for b in upcoming_range_bookings if not (
+        b.range_time.date == today and b.range_time.time < current_time)]
 
     return render_template(
         'member/dashboard.html',
@@ -107,7 +110,12 @@ def book_coaching(coach_id):
         )
         db.session.add(booking)
         db.session.commit()
-        flash(f'Coaching lesson booked with {coach.full_name} at {ct.time.strftime("%H:%M")} on {ct.date.strftime("%d/%m/%Y")}!', 'success')
+        flash(
+            f'Coaching lesson booked with {
+                coach.full_name} at {
+                ct.time.strftime("%H:%M")} on {
+                ct.date.strftime("%d/%m/%Y")}!',
+            'success')
         return redirect(url_for('member.dashboard'))
 
     # GET: show available time slots
@@ -180,7 +188,7 @@ def _filter_available_tee_times(selected_date):
             from datetime import time as dt_time
             if not isinstance(latest_comp_time, dt_time):
                 return tee_times
-                
+
             # General play allowed 30 min after the last competition tee time
             cutoff_dt = datetime.combine(today, latest_comp_time) + timedelta(minutes=30)
             cutoff_time = cutoff_dt.time()
@@ -223,7 +231,8 @@ def book_tee_time():
             return redirect(url_for('member.book_tee_time', date=request.form.get('date')))
 
         def _parse_hcp(v):
-            if not v or not str(v).strip(): return None
+            if not v or not str(v).strip():
+                return None
             v = str(v).strip()
             is_plus = v.startswith('+')
             try:
@@ -237,7 +246,7 @@ def book_tee_time():
             player_handicap = _parse_hcp(request.form.get(f'player_{i}_handicap'))
             if player_handicap is not None:
                 if player_handicap < -10 or player_handicap > 54:
-                    flash(f'Player {i+1} handicap must be between -10 and 54.', 'danger')
+                    flash(f'Player {i + 1} handicap must be between -10 and 54.', 'danger')
                     return redirect(url_for('member.book_tee_time', date=request.form.get('date')))
 
         booking = GeneralBooking(
@@ -329,7 +338,7 @@ def competitions():
         Competition.date >= today,
         Competition.is_active == True  # noqa: E712
     ).order_by(Competition.date).all()
-    
+
     # Get user's bookings mapped by competition ID
     user_bookings_query = CompetitionBooking.query.join(
         CompetitionTeeTime
@@ -337,9 +346,9 @@ def competitions():
         CompetitionBooking.member_id == current_user.id,
         CompetitionTeeTime.competition_id.in_([c.id for c in upcoming]) if upcoming else False
     ).all()
-    
+
     user_bookings = {b.comp_tee_time.competition_id: b for b in user_bookings_query}
-    
+
     return render_template('member/competitions.html', competitions=upcoming, user_bookings=user_bookings)
 
 
@@ -458,7 +467,7 @@ def cancel_general_booking(booking_id):
         db.session.commit()
         flash('Your tee time booking has been cancelled.', 'success')
         return redirect(url_for('member.dashboard'))
-    
+
     # Check if they are an additional player
     player = booking.players.filter_by(player_name=current_user.full_name).first()
     if player:
@@ -485,12 +494,12 @@ def book_range():
     if request.method == 'POST':
         range_time_id = request.form.get('range_time_id', type=int)
         rt = RangeTime.query.get_or_404(range_time_id)
-        
+
         # Don't allow booking if already booked
         if rt.booking:
             flash(f'Bay {rt.bay_number} at {rt.time.strftime("%H:%M")} is already booked.', 'danger')
             return redirect(url_for('member.book_range', date=selected_date_str))
-        
+
         # Prevent booking past times
         now = datetime.now()
         rt_dt = datetime.combine(rt.date, rt.time)
@@ -504,7 +513,7 @@ def book_range():
             RangeTime.date == rt.date,
             RangeTime.time == rt.time
         ).first()
-        
+
         if existing_concurrent_booking:
             flash(f'You already have a range bay booked at {rt.time.strftime("%H:%M")}.', 'warning')
             return redirect(url_for('member.book_range', date=selected_date_str))
@@ -520,7 +529,7 @@ def book_range():
 
     # GET request
     range_times = RangeTime.query.filter_by(date=selected_date).order_by(RangeTime.time, RangeTime.bay_number).all()
-    
+
     # Filter out past times for today
     if selected_date == date.today():
         now_time = datetime.now().time()
@@ -553,11 +562,11 @@ def book_range():
 def cancel_range_booking(booking_id):
     """Cancel a member's own range booking from the dashboard."""
     booking = RangeBooking.query.get_or_404(booking_id)
-    
+
     if booking.member_id != current_user.id:
         flash('Unauthorized.', 'danger')
         return redirect(url_for('member.dashboard'))
-        
+
     db.session.delete(booking)
     db.session.commit()
     flash('Your range booking has been cancelled.', 'success')
@@ -603,19 +612,19 @@ def profile():
             if not current_user.check_password(current_password):
                 flash('Current password is incorrect.', 'danger')
                 return redirect(url_for('member.profile'))
-                
+
             if not new_password or len(new_password) < 8:
                 flash('New password must be at least 8 characters long.', 'danger')
                 return redirect(url_for('member.profile'))
-                
+
             if not any(c.isupper() for c in new_password):
                 flash('New password must contain at least 1 capital letter.', 'danger')
                 return redirect(url_for('member.profile'))
-                
+
             if not any(c.isdigit() for c in new_password):
                 flash('New password must contain at least 1 number.', 'danger')
                 return redirect(url_for('member.profile'))
-                
+
             if new_password != confirm_password:
                 flash('New passwords do not match.', 'danger')
                 return redirect(url_for('member.profile'))

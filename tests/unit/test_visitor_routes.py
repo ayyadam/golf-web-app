@@ -1,6 +1,5 @@
 """Unit tests for visitor routes."""
-from datetime import date
-from app.models import Visitor, GeneralBooking, BookingPlayer, MembershipRequest
+from app.models import GeneralBooking, MembershipRequest
 
 
 class TestVisitorRoutes:
@@ -27,7 +26,7 @@ class TestVisitorRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Tee time booked successfully' in resp.data
-        
+
         booking = GeneralBooking.query.filter_by(tee_time_id=tee_time.id).first()
         assert booking is not None
         assert booking.visitor.first_name == 'Test'
@@ -45,16 +44,16 @@ class TestVisitorRoutes:
             'player_1_handicap': '20.0'
         }, follow_redirects=True)
         assert resp.status_code == 200
-        
+
         booking = GeneralBooking.query.filter_by(tee_time_id=tee_time.id).first()
         assert booking is not None
         assert booking.group_size == 2
         assert booking.players.count() == 1
         assert booking.players.first().player_name == 'Friend'
 
-    def test_visitor_book_full_tee_time(self, client, tee_time):
+    def test_visitor_book_full_tee_time(self, client, tee_time, visitor):
         # Fully book the tee time first
-        booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=1, group_size=4)
+        booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=visitor.id, group_size=4)
         from app.extensions import db
         db.session.add(booking)
         db.session.commit()
@@ -75,7 +74,7 @@ class TestVisitorRoutes:
         booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=visitor.id, group_size=1)
         db.session.add(booking)
         db.session.commit()
-        
+
         resp = client.get(f'/visitor/booking-confirmation/{booking.id}')
         assert resp.status_code == 200
         assert b'Booking Confirmed!' in resp.data
@@ -91,7 +90,7 @@ class TestVisitorRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'membership request has been submitted' in resp.data
-        
+
         req = MembershipRequest.query.filter_by(email='jane@test.com').first()
         assert req is not None
         assert req.status == 'pending'
