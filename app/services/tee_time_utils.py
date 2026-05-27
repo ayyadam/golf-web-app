@@ -1,5 +1,5 @@
 """Tee time utility functions — seasonal hours and generation."""
-from datetime import time, timedelta
+from datetime import time
 
 
 def get_seasonal_hours(target_date):

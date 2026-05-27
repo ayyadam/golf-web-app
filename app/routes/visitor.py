@@ -12,7 +12,8 @@ visitor_bp = Blueprint('visitor', __name__)
 
 def _parse_hcp(v):
     """Helper to parse raw HTML input (e.g. +2.0) into the expected internal negative float structure."""
-    if not v or not str(v).strip(): return None
+    if not v or not str(v).strip():
+        return None
     v = str(v).strip()
     is_plus = v.startswith('+')
     try:

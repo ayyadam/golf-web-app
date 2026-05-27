@@ -4,11 +4,9 @@ from datetime import date, time, timedelta
 from app import create_app
 from app.extensions import db as _db
 from app.models import (
-    Member, TeeTime, GeneralBooking, BookingPlayer,
-    Competition, CompetitionTeeTime, CompetitionBooking,
-    RangeTime, RangeBooking,
-    Coach, CoachingTime, CoachingBooking,
-    Visitor, MembershipRequest
+    Member, TeeTime, Competition, CompetitionTeeTime,
+    RangeTime, Coach, CoachingTime,
+    Visitor
 )
 
 

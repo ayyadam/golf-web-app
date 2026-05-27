@@ -5,11 +5,10 @@ from ..models import (
     Member, TeeTime, GeneralBooking, BookingPlayer,
     Competition, CompetitionTeeTime, CompetitionBooking,
     RangeTime, RangeBooking,
-    Coach, CoachingTime, CoachingBooking,
-    MembershipRequest
+    Coach, CoachingTime, MembershipRequest
 )
 from .auth import admin_required
-from datetime import date, datetime, time as dt_time
+from datetime import date, datetime
 from ..services.tee_time_utils import generate_tee_time_slots
 
 admin_bp = Blueprint('admin', __name__)
@@ -19,12 +18,12 @@ admin_bp = Blueprint('admin', __name__)
 @admin_required
 def require_admin():
     """All admin routes require admin privileges."""
-    pass
 
 
 def _parse_hcp(v):
     """Helper to parse raw HTML input (e.g. +2.0) into the expected internal negative float structure."""
-    if not v or not str(v).strip(): return None
+    if not v or not str(v).strip():
+        return None
     v = str(v).strip()
     is_plus = v.startswith('+')
     try:
@@ -34,6 +33,7 @@ def _parse_hcp(v):
         return None
 
 # ── Dashboard ──────────────────────────────────────────────────────────────────
+
 
 @admin_bp.route('/dashboard')
 def dashboard():
@@ -139,7 +139,11 @@ def manage_members():
         membership_type = request.form.get('membership_type', 'Full Year')
 
         if not all([first_name, last_name, email, telephone]) or handicap is None or not (-10.0 <= handicap <= 54.0):
-            flash('First name, last name, email, telephone, and a valid handicap (between -10.0 and 54.0) are required.', 'danger')
+            flash(
+                'First name, last name, email, telephone, and a valid handicap '
+                '(between -10.0 and 54.0) are required.',
+                'danger'
+            )
             members = Member.query.order_by(Member.is_admin.desc(), Member.last_name).all()
             return render_template('admin/members.html', members=members, form_data=request.form)
 
@@ -186,12 +190,12 @@ def manage_members():
 def delete_member(member_id):
     """Delete a member from the system."""
     member = Member.query.get_or_404(member_id)
-    
+
     # Prevent admin from deleting themselves
     if member.id == current_user.id:
         flash('You cannot delete your own account.', 'danger')
         return redirect(url_for('admin.manage_members'))
-        
+
     db.session.delete(member)
     db.session.commit()
     flash(f'{member.full_name} has been permanently removed.', 'success')
@@ -212,7 +216,7 @@ def edit_member(member_id):
         if handicap is not None and not (-10.0 <= handicap <= 54.0):
             flash('Handicap must be between -10.0 and 54.0.', 'danger')
             return redirect(url_for('admin.edit_member', member_id=member_id))
-            
+
         member.handicap = handicap
         member.membership_type = request.form.get(
             'membership_type', member.membership_type
@@ -384,7 +388,7 @@ def edit_competition(comp_id):
         comp.date = date.fromisoformat(request.form.get('date'))
         comp.format = request.form.get('format')
         comp.description = request.form.get('description', '')
-        
+
         db.session.commit()
         flash(f'Competition "{comp.name}" updated successfully.', 'success')
         return redirect(url_for('admin.manage_competitions'))
@@ -437,34 +441,38 @@ def manage_comp_tee_times(comp_id):
         elif action == 'add_booking':
             ctt_id = request.form.get('ctt_id', type=int)
             member_ids = request.form.getlist('member_ids[]')
-            
+
             if not ctt_id or not member_ids:
                 flash('Missing tee time or member selection.', 'danger')
                 return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
-            
+
             ctt = CompetitionTeeTime.query.get_or_404(ctt_id)
 
             # Filter out empty member IDs if any
             member_ids = [m_id for m_id in member_ids if m_id.strip()]
-            
+
             if not member_ids:
                 flash('No valid members selected.', 'danger')
                 return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
 
             if ctt.slots_remaining < len(member_ids):
-                flash(f'Not enough slots remaining. You tried to add {len(member_ids)} players, but only {ctt.slots_remaining} slots are left.', 'danger')
+                flash(
+                    f'Not enough slots remaining. You tried to add {
+                        len(member_ids)} players, but only {
+                        ctt.slots_remaining} slots are left.',
+                    'danger')
                 return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
 
             all_ctt_ids = [t.id for t in competition.tee_times]
-            
+
             members_to_add = []
-            
+
             for m_id in member_ids:
                 member = Member.query.get(int(m_id))
                 if not member:
                     flash('One or more selected members could not be found.', 'danger')
                     return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
-                    
+
                 # Check if member is already booked in any tee time for this competition
                 existing_booking = CompetitionBooking.query.filter(
                     CompetitionBooking.comp_tee_time_id.in_(all_ctt_ids),
@@ -474,18 +482,18 @@ def manage_comp_tee_times(comp_id):
                 if existing_booking:
                     flash(f'Booking aborted. {member.full_name} is already booked in this competition.', 'danger')
                     return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
-                
+
                 members_to_add.append(member)
-            
+
             for member in members_to_add:
                 new_booking = CompetitionBooking(
                     comp_tee_time_id=ctt.id,
                     member_id=member.id
                 )
                 db.session.add(new_booking)
-                
+
             db.session.commit()
-            
+
             names_added = ", ".join([m.full_name for m in members_to_add])
             flash(f'Added {names_added} to {ctt.time.strftime("%H:%M")} tee time.', 'success')
             return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
@@ -512,7 +520,6 @@ def manage_comp_tee_times(comp_id):
             )
             db.session.add(comp_tt)
 
-
             db.session.commit()
             flash('Competition tee time added.', 'success')
             return redirect(url_for('admin.manage_comp_tee_times', comp_id=comp_id))
@@ -535,7 +542,7 @@ def manage_range():
     """View and create range bay time slots."""
     if request.method == 'POST':
         action = request.form.get('action', 'create')
-        
+
         if action == 'generate':
             from ..services.tee_time_utils import generate_range_bay_slots
             gen_date_str = request.form.get('generate_date')
@@ -544,7 +551,7 @@ def manage_range():
                 slots = generate_range_bay_slots(gen_date)
                 created: int = 0
                 for slot in slots:
-                    for bay_number in range(1, 7): # Bays 1 to 6
+                    for bay_number in range(1, 7):  # Bays 1 to 6
                         existing = RangeTime.query.filter_by(
                             date=gen_date, time=slot, bay_number=bay_number
                         ).first()
@@ -566,12 +573,12 @@ def manage_range():
             db.session.commit()
             flash('Range bay booking cancelled successfully.', 'success')
             return redirect(url_for('admin.manage_range', date=date_str))
-            
+
         else:
             from datetime import datetime
             range_date_str = request.form.get('date')
             range_time_str = request.form.get('time')
-            
+
             range_date = datetime.strptime(range_date_str, '%Y-%m-%d').date() if range_date_str else date.today()
             range_time = datetime.strptime(range_time_str, '%H:%M').time() if range_time_str else datetime.now().time()
 

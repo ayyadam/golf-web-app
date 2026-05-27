@@ -1,8 +1,7 @@
 """Unit tests for member routes."""
-from datetime import date
 from app.models import (
-    Member, GeneralBooking, BookingPlayer,
-    CompetitionBooking, RangeBooking, CoachingBooking
+    Member, GeneralBooking, CompetitionBooking,
+    RangeBooking, CoachingBooking
 )
 
 
@@ -29,7 +28,7 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Tee time booked successfully' in resp.data
-        
+
         booking = GeneralBooking.query.filter_by(tee_time_id=tee_time.id).first()
         assert booking is not None
         assert booking.member_id == member_user.id
@@ -42,7 +41,7 @@ class TestMemberRoutes:
             'player_1_handicap': '20.0'
         }, follow_redirects=True)
         assert resp.status_code == 200
-        
+
         booking = GeneralBooking.query.filter_by(tee_time_id=tee_time.id).first()
         assert booking is not None
         assert booking.group_size == 2
@@ -95,7 +94,7 @@ class TestMemberRoutes:
         m.set_password('pw')
         db.session.add(m)
         db.session.commit()
-        
+
         resp = auth_client.get('/member/api/members/search?q=John')
         assert resp.status_code == 200
         data = resp.json
@@ -129,7 +128,7 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Competition tee time booked' in resp.data
-        
+
         booking = CompetitionBooking.query.filter_by(comp_tee_time_id=comp_tee_time.id).first()
         assert booking is not None
         assert booking.member_id == member_user.id
@@ -138,7 +137,7 @@ class TestMemberRoutes:
         # Fill it up
         from app.extensions import db
         for i in range(3):
-            db.session.add(CompetitionBooking(comp_tee_time_id=comp_tee_time.id, member_id=i+100))
+            db.session.add(CompetitionBooking(comp_tee_time_id=comp_tee_time.id, member_id=i + 100))
         db.session.commit()
 
         resp = auth_client.post(f'/member/competitions/{comp_tee_time.competition_id}/book', data={
@@ -189,7 +188,7 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Successfully booked' in resp.data
-        
+
         booking = RangeBooking.query.filter_by(range_time_id=range_time.id).first()
         assert booking is not None
         assert booking.member_id == member_user.id
@@ -210,7 +209,7 @@ class TestMemberRoutes:
         from app.models import RangeTime
         # User already has bay 1
         db.session.add(RangeBooking(range_time_id=range_time.id, member_id=member_user.id))
-        
+
         # Try to book bay 2 at same time
         rt2 = RangeTime(date=range_time.date, time=range_time.time, bay_number=2, is_available=True)
         db.session.add(rt2)
@@ -252,7 +251,7 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'Coaching lesson booked' in resp.data
-        
+
         booking = CoachingBooking.query.filter_by(coaching_time_id=coaching_time.id).first()
         assert booking is not None
         assert booking.member_id == member_user.id
@@ -280,7 +279,7 @@ class TestMemberRoutes:
         }, follow_redirects=True)
         assert resp.status_code == 200
         assert b'details have been successfully updated' in resp.data
-        
+
         from app.extensions import db
         db.session.refresh(member_user)
         assert member_user.email == 'new@test.com'
