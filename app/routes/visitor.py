@@ -1,79 +1,55 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from ..extensions import db
 from ..models import (
-    Visitor, TeeTime, GeneralBooking, BookingPlayer,
-    MembershipRequest
+    Visitor, TeeTime, GeneralBooking, MembershipRequest
 )
 from ..routes.member import _filter_available_tee_times
-from datetime import date, datetime
+from ..services.booking_service import (
+    PlayerInput, create_general_booking, parse_handicap, validate_general_booking,
+)
+from datetime import date
 
 visitor_bp = Blueprint('visitor', __name__)
-
-
-def _parse_hcp(v):
-    """Helper to parse raw HTML input (e.g. +2.0) into the expected internal negative float structure."""
-    if not v or not str(v).strip():
-        return None
-    v = str(v).strip()
-    is_plus = v.startswith('+')
-    try:
-        numeric = float(v.replace('+', ''))
-        return -abs(numeric) if is_plus else numeric
-    except ValueError:
-        return None
 
 
 @visitor_bp.route('/book-tee-time', methods=['GET', 'POST'])
 def book_tee_time():
     """Visitor tee time booking — requires visitor details."""
     if request.method == 'POST':
-        # Create or find visitor
+        tee_time_id = request.form.get('tee_time_id', type=int)
+        group_size = request.form.get('group_size', 1, type=int)
+        tee_time = TeeTime.query.get_or_404(tee_time_id)
+
+        error = validate_general_booking(tee_time, group_size)
+        if error:
+            flash(error.message, 'danger')
+            return redirect(url_for('visitor.book_tee_time'))
+
+        # Validation passed — now persist the visitor and the booking together
         visitor = Visitor(
             first_name=request.form.get('first_name', '').strip(),
             last_name=request.form.get('last_name', '').strip(),
             email=request.form.get('email', '').strip(),
             telephone=request.form.get('telephone', '').strip(),
-            handicap=_parse_hcp(request.form.get('handicap')),
+            handicap=parse_handicap(request.form.get('handicap')),
         )
         db.session.add(visitor)
-        db.session.flush()  # Get the visitor ID
+        db.session.flush()  # obtain visitor.id
 
-        tee_time_id = request.form.get('tee_time_id', type=int)
-        group_size = request.form.get('group_size', 1, type=int)
-        tee_time = TeeTime.query.get_or_404(tee_time_id)
+        players = [
+            PlayerInput(
+                name=request.form.get(f'player_{i}_name', '').strip(),
+                handicap=parse_handicap(request.form.get(f'player_{i}_handicap')),
+            )
+            for i in range(1, group_size)
+        ]
 
-        # Prevent booking past tee times
-        now = datetime.now()
-        tee_dt = datetime.combine(tee_time.date, tee_time.time)
-        if tee_dt <= now:
-            flash('This tee time has already passed.', 'danger')
-            db.session.rollback()
-            return redirect(url_for('visitor.book_tee_time'))
-
-        if group_size > tee_time.slots_remaining:
-            flash('Not enough slots available for your group size.', 'danger')
-            db.session.rollback()
-            return redirect(url_for('visitor.book_tee_time'))
-
-        booking = GeneralBooking(
-            tee_time_id=tee_time_id,
+        booking = create_general_booking(
+            tee_time=tee_time,
+            group_size=group_size,
             visitor_id=visitor.id,
-            group_size=group_size
+            players=players,
         )
-        db.session.add(booking)
-
-        # Add additional players
-        for i in range(1, group_size):
-            player_name = request.form.get(f'player_{i}_name', '').strip()
-            player_handicap = _parse_hcp(request.form.get(f'player_{i}_handicap'))
-            if player_name:
-                player = BookingPlayer(
-                    booking=booking,
-                    player_name=player_name,
-                    handicap=player_handicap
-                )
-                db.session.add(player)
-
         db.session.commit()
         flash('Tee time booked successfully! Enjoy your round.', 'success')
         return redirect(url_for('visitor.booking_confirmation', booking_id=booking.id))
