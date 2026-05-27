@@ -47,9 +47,9 @@ class TestMemberRoutes:
         assert booking.group_size == 2
         assert booking.players.count() == 1
 
-    def test_book_tee_time_not_enough_slots(self, auth_client, tee_time):
+    def test_book_tee_time_not_enough_slots(self, auth_client, tee_time, visitor):
         # Fill the tee time
-        booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=1, group_size=4)
+        booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=visitor.id, group_size=4)
         from app.extensions import db
         db.session.add(booking)
         db.session.commit()
@@ -134,10 +134,23 @@ class TestMemberRoutes:
         assert booking.member_id == member_user.id
 
     def test_book_competition_full(self, auth_client, comp_tee_time):
-        # Fill it up
+        # Fill it up with 3 throwaway members (FK enforcement requires real member rows)
         from app.extensions import db
+        from app.models import Member
         for i in range(3):
-            db.session.add(CompetitionBooking(comp_tee_time_id=comp_tee_time.id, member_id=i + 100))
+            filler = Member(
+                username=f'filler{i}',
+                email=f'filler{i}@test.com',
+                first_name=f'Filler{i}',
+                last_name='Test',
+                telephone=f'07700{i:06d}',
+                membership_type='Full Year',
+                is_active=True,
+            )
+            filler.set_password('fillerpass')
+            db.session.add(filler)
+            db.session.flush()
+            db.session.add(CompetitionBooking(comp_tee_time_id=comp_tee_time.id, member_id=filler.id))
         db.session.commit()
 
         resp = auth_client.post(f'/member/competitions/{comp_tee_time.competition_id}/book', data={
@@ -168,9 +181,9 @@ class TestMemberRoutes:
         assert b'booking has been cancelled' in resp.data
         assert GeneralBooking.query.get(b.id) is None
 
-    def test_cancel_general_booking_unauthorized(self, auth_client, tee_time):
+    def test_cancel_general_booking_unauthorized(self, auth_client, tee_time, other_member):
         from app.extensions import db
-        b = GeneralBooking(tee_time_id=tee_time.id, member_id=999)
+        b = GeneralBooking(tee_time_id=tee_time.id, member_id=other_member.id)
         db.session.add(b)
         db.session.commit()
 
@@ -193,9 +206,9 @@ class TestMemberRoutes:
         assert booking is not None
         assert booking.member_id == member_user.id
 
-    def test_book_range_already_booked_slot(self, auth_client, range_time):
+    def test_book_range_already_booked_slot(self, auth_client, range_time, visitor):
         from app.extensions import db
-        db.session.add(RangeBooking(range_time_id=range_time.id, visitor_id=1))
+        db.session.add(RangeBooking(range_time_id=range_time.id, visitor_id=visitor.id))
         db.session.commit()
 
         resp = auth_client.post('/member/book-range', data={
@@ -231,9 +244,9 @@ class TestMemberRoutes:
         assert resp.status_code == 200
         assert b'cancelled' in resp.data
 
-    def test_cancel_range_booking_unauthorized(self, auth_client, range_time):
+    def test_cancel_range_booking_unauthorized(self, auth_client, range_time, other_member):
         from app.extensions import db
-        b = RangeBooking(range_time_id=range_time.id, member_id=999)
+        b = RangeBooking(range_time_id=range_time.id, member_id=other_member.id)
         db.session.add(b)
         db.session.commit()
 
@@ -256,9 +269,9 @@ class TestMemberRoutes:
         assert booking is not None
         assert booking.member_id == member_user.id
 
-    def test_book_coaching_already_taken(self, auth_client, coaching_time):
+    def test_book_coaching_already_taken(self, auth_client, coaching_time, visitor):
         from app.extensions import db
-        db.session.add(CoachingBooking(coaching_time_id=coaching_time.id, visitor_id=1))
+        db.session.add(CoachingBooking(coaching_time_id=coaching_time.id, visitor_id=visitor.id))
         db.session.commit()
 
         resp = auth_client.post(f'/member/coaching/{coaching_time.coach_id}/book', data={

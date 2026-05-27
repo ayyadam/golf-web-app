@@ -51,9 +51,9 @@ class TestVisitorRoutes:
         assert booking.players.count() == 1
         assert booking.players.first().player_name == 'Friend'
 
-    def test_visitor_book_full_tee_time(self, client, tee_time):
+    def test_visitor_book_full_tee_time(self, client, tee_time, visitor):
         # Fully book the tee time first
-        booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=1, group_size=4)
+        booking = GeneralBooking(tee_time_id=tee_time.id, visitor_id=visitor.id, group_size=4)
         from app.extensions import db
         db.session.add(booking)
         db.session.commit()
