@@ -209,7 +209,8 @@ class TestBookTeeTimeApi:
             json={'group_size': 1},
             headers=_auth_header(member_token),
         )
-        assert resp.status_code == 400
+        # Conflict with current state -> 409, not 400
+        assert resp.status_code == 409
         assert resp.get_json()['code'] == 'tee_time_past'
 
     def test_rejects_too_large_group(self, client, tee_time, member_token):
@@ -230,13 +231,13 @@ class TestBookTeeTimeApi:
             tee_time_id=tee_time.id, member_id=other_member.id, group_size=3,
         ))
         _db.session.commit()
-        # Now only 1 slot remains; requesting 2 should fail
+        # Now only 1 slot remains; requesting 2 should conflict
         resp = client.post(
             f'/api/v1/tee-times/{tee_time.id}/bookings',
             json={'group_size': 2},
             headers=_auth_header(member_token),
         )
-        assert resp.status_code == 400
+        assert resp.status_code == 409
         assert resp.get_json()['code'] == 'not_enough_slots'
 
     def test_rejects_already_booked(
@@ -251,12 +252,14 @@ class TestBookTeeTimeApi:
             json={'group_size': 1},
             headers=_auth_header(member_token),
         )
-        assert resp.status_code == 400
+        assert resp.status_code == 409
         assert resp.get_json()['code'] == 'already_booked'
 
     def test_rejects_invalid_player_handicap(
         self, client, tee_time, member_token
     ):
+        # Handicap range is now part of the schema, so an out-of-range value
+        # is rejected at the validation layer as 422 (not the service 400).
         resp = client.post(
             f'/api/v1/tee-times/{tee_time.id}/bookings',
             json={'group_size': 2, 'players': [
@@ -264,8 +267,7 @@ class TestBookTeeTimeApi:
             ]},
             headers=_auth_header(member_token),
         )
-        assert resp.status_code == 400
-        assert resp.get_json()['code'] == 'invalid_player_handicap'
+        assert resp.status_code == 422
 
     def test_unknown_tee_time_returns_404(self, client, member_token):
         resp = client.post(

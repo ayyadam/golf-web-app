@@ -30,7 +30,10 @@ from .schemas import (
 @api_bp.post('/auth/token')
 @api_bp.input(TokenRequest)
 @api_bp.output(TokenResponse)
-@api_bp.doc(summary='Issue a bearer token in exchange for username + password')
+@api_bp.doc(
+    summary='Issue a bearer token in exchange for username + password',
+    responses={400: 'Malformed request body', 401: 'Invalid credentials'},
+)
 def issue_access_token(json_data):
     """Authenticate a member and return a signed bearer token."""
     member = Member.query.filter_by(
@@ -75,7 +78,7 @@ def list_tee_times(query_data):
 
 @api_bp.get('/tee-times/<int:tee_time_id>')
 @api_bp.output(TeeTimeOut)
-@api_bp.doc(summary='Get a single tee time by id')
+@api_bp.doc(summary='Get a single tee time by id', responses={404: 'Tee time not found'})
 def get_tee_time(tee_time_id):
     """Return a tee time by id, or 404 if not found."""
     return TeeTime.query.get_or_404(tee_time_id)
@@ -106,6 +109,11 @@ def get_current_member():
 
 # ---- Bookings ----
 
+# Booking rejections that reflect a conflict with current resource state
+# (rather than malformed input) are reported as 409 Conflict.
+_CONFLICT_CODES = {'tee_time_past', 'not_enough_slots', 'already_booked'}
+
+
 @api_bp.post('/tee-times/<int:tee_time_id>/bookings')
 @api_bp.auth_required(token_auth)
 @api_bp.input(BookingRequest)
@@ -113,8 +121,10 @@ def get_current_member():
 @api_bp.doc(
     summary='Book a tee time for the authenticated member',
     responses={
-        400: 'Booking rejected by validation (see error code)',
+        400: 'Malformed request body',
         404: 'Tee time not found',
+        409: 'Booking conflicts with current state (past tee time, full, or already booked)',
+        422: 'Invalid input (e.g. player handicap out of range)',
     },
 )
 def book_tee_time(tee_time_id, json_data):
@@ -122,7 +132,8 @@ def book_tee_time(tee_time_id, json_data):
 
     The booking rules (past tee time, slot availability, double-booking,
     player handicap range) are enforced by the shared booking_service so
-    the same constraints apply as for the HTML routes.
+    the same constraints apply as for the HTML routes. Conflicts with
+    current state return 409; malformed input returns 422.
     """
     tee_time = TeeTime.query.get_or_404(tee_time_id)
     member = token_auth.current_user
@@ -137,7 +148,8 @@ def book_tee_time(tee_time_id, json_data):
         or validate_player_handicaps(players)
     )
     if error:
-        return make_response(jsonify(code=error.code, message=error.message), 400)
+        status = 409 if error.code in _CONFLICT_CODES else 422
+        return make_response(jsonify(code=error.code, message=error.message), status)
 
     booking = create_general_booking(
         tee_time=tee_time,
