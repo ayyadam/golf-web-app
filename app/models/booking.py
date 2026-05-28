@@ -13,8 +13,11 @@ class TeeTime(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     # Relationships
+    # selectin (not dynamic): booked_count sums this collection, and listing
+    # many tee times would otherwise fire one bookings query per row (N+1).
+    # selectin batch-loads all bookings for the loaded set in a single query.
     bookings = db.relationship(
-        'GeneralBooking', backref='tee_time', lazy='dynamic',
+        'GeneralBooking', backref='tee_time', lazy='selectin',
         cascade='all, delete-orphan'
     )
 
