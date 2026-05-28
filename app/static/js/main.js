@@ -208,6 +208,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 minDate: input.getAttribute('min') || null,
                 maxDate: input.getAttribute('max') || null,
                 onReady: function (selectedDates, dateStr, instance) {
+                    // Give the generated alt input an accessible name (WCAG 4.1.2 / 1.3.1).
+                    // Flatpickr's altInput has no id, so the page's <label for="..."> does
+                    // not associate with it; copy that label's text into aria-label.
+                    if (instance.altInput) {
+                        const labelEl = instance.input.id
+                            ? document.querySelector(`label[for="${instance.input.id}"]`)
+                            : null;
+                        instance.altInput.setAttribute(
+                            "aria-label",
+                            (labelEl && labelEl.textContent.trim()) || "Select date"
+                        );
+                    }
+
                     const btnWrapper = document.createElement("div");
                     btnWrapper.style.padding = "10px";
                     btnWrapper.style.borderTop = "1px solid var(--agc-dark-border)";
