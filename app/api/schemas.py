@@ -13,13 +13,17 @@ from apiflask.validators import Length, Range
 from marshmallow import ValidationError, post_dump
 
 
-def utf8_safe(value):
-    """Reject strings that cannot be encoded to UTF-8 (e.g. lone surrogates).
+def safe_text(value):
+    """Reject strings the database cannot store: invalid UTF-8 or NUL bytes.
 
-    Without this, such a value reaches the database layer and raises an
-    encoding error there, surfacing as a 500. Validating up front turns it
-    into a clean 422. (Found by contract fuzzing against Postgres.)
+    Two classes of input reach the DB layer and crash with a 500 otherwise:
+    - lone surrogates, which cannot be encoded to UTF-8
+    - NUL (0x00) bytes, which encode fine but Postgres text columns reject
+    Validating up front turns both into a clean 422. Both were found by
+    contract fuzzing against Postgres (not reproducible on SQLite).
     """
+    if "\x00" in value:
+        raise ValidationError("Must not contain null bytes.")
     try:
         value.encode("utf-8")
     except UnicodeEncodeError as exc:
@@ -29,8 +33,8 @@ def utf8_safe(value):
 # ---- Auth ----
 
 class TokenRequest(Schema):
-    username = String(required=True, validate=utf8_safe, metadata={'description': 'Member username'})
-    password = String(required=True, validate=utf8_safe, metadata={'description': 'Member password'})
+    username = String(required=True, validate=safe_text, metadata={'description': 'Member username'})
+    password = String(required=True, validate=safe_text, metadata={'description': 'Member password'})
 
 
 class TokenResponse(Schema):
@@ -83,7 +87,7 @@ class MemberOut(Schema):
 # ---- Bookings ----
 
 class PlayerInputSchema(Schema):
-    name = String(required=True, validate=[Length(min=1, max=200), utf8_safe])
+    name = String(required=True, validate=[Length(min=1, max=200), safe_text])
     # Handicap range is part of the contract: -10 (plus handicap) to 54.
     handicap = Float(allow_none=True, load_default=None, validate=Range(min=-10, max=54))
 

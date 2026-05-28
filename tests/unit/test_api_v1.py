@@ -58,6 +58,22 @@ class TestAuthToken:
         resp = client.post('/api/v1/auth/token', json={'username': 'x'})
         assert resp.status_code == 422
 
+    def test_null_byte_in_username_rejected_cleanly(self, client, db):
+        # A NUL byte encodes to UTF-8 fine but Postgres text columns reject
+        # it; without validation this reaches the DB and 500s. Expect 422.
+        resp = client.post('/api/v1/auth/token', json={
+            'username': 'a\x00b',
+            'password': 'x',
+        })
+        assert resp.status_code == 422
+
+    def test_lone_surrogate_in_username_rejected_cleanly(self, client, db):
+        resp = client.post('/api/v1/auth/token', json={
+            'username': '\ud800',
+            'password': 'x',
+        })
+        assert resp.status_code == 422
+
 
 # ---------- tee times ----------
 
