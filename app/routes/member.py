@@ -8,6 +8,10 @@ from ..models import (
     Coach, CoachingTime, CoachingBooking,
     RangeTime, RangeBooking
 )
+from ..services.booking_service import (
+    PlayerInput, create_general_booking, parse_handicap,
+    validate_general_booking, validate_player_handicaps,
+)
 from datetime import date, datetime, timedelta
 
 member_bp = Blueprint('member', __name__)
@@ -203,71 +207,33 @@ def book_tee_time():
     if request.method == 'POST':
         tee_time_id = request.form.get('tee_time_id', type=int)
         group_size = request.form.get('group_size', 1, type=int)
-
         tee_time = TeeTime.query.get_or_404(tee_time_id)
 
-        # Prevent booking past tee times
-        now = datetime.now()
-        tee_dt = datetime.combine(tee_time.date, tee_time.time)
-        if tee_dt <= now:
-            flash('This tee time has already passed.', 'danger')
-            return redirect(url_for('member.book_tee_time'))
-
-        if group_size > tee_time.slots_remaining:
-            flash('Not enough slots available for your group size.', 'danger')
-            return redirect(url_for('member.book_tee_time'))
-
-        # Prevent double booking the same time
-        existing_booking = GeneralBooking.query.join(TeeTime).filter(
-            TeeTime.id == tee_time_id,
-            db.or_(
-                GeneralBooking.member_id == current_user.id,
-                GeneralBooking.players.any(BookingPlayer.player_name == current_user.full_name)
+        players = [
+            PlayerInput(
+                name=request.form.get(f'player_{i}_name', '').strip(),
+                handicap=parse_handicap(request.form.get(f'player_{i}_handicap')),
             )
-        ).first()
+            for i in range(1, group_size)
+        ]
 
-        if existing_booking:
-            flash('You are already booked for this tee time.', 'warning')
-            return redirect(url_for('member.book_tee_time', date=request.form.get('date')))
-
-        def _parse_hcp(v):
-            if not v or not str(v).strip():
-                return None
-            v = str(v).strip()
-            is_plus = v.startswith('+')
-            try:
-                numeric = float(v.replace('+', ''))
-                return -abs(numeric) if is_plus else numeric
-            except ValueError:
-                return None
-
-        # Validate visitor handicaps before saving anything
-        for i in range(1, group_size):
-            player_handicap = _parse_hcp(request.form.get(f'player_{i}_handicap'))
-            if player_handicap is not None:
-                if player_handicap < -10 or player_handicap > 54:
-                    flash(f'Player {i + 1} handicap must be between -10 and 54.', 'danger')
-                    return redirect(url_for('member.book_tee_time', date=request.form.get('date')))
-
-        booking = GeneralBooking(
-            tee_time_id=tee_time_id,
-            member_id=current_user.id,
-            group_size=group_size
+        error = (
+            validate_general_booking(tee_time, group_size, member=current_user)
+            or validate_player_handicaps(players)
         )
-        db.session.add(booking)
+        if error:
+            category = 'warning' if error.code == 'already_booked' else 'danger'
+            flash(error.message, category)
+            return redirect(url_for(
+                'member.book_tee_time', date=request.form.get('date')
+            ))
 
-        # Add additional players if group booking
-        for i in range(1, group_size):
-            player_name = request.form.get(f'player_{i}_name', '').strip()
-            player_handicap = _parse_hcp(request.form.get(f'player_{i}_handicap'))
-            if player_name:
-                player = BookingPlayer(
-                    booking=booking,
-                    player_name=player_name,
-                    handicap=player_handicap
-                )
-                db.session.add(player)
-
+        create_general_booking(
+            tee_time=tee_time,
+            group_size=group_size,
+            member=current_user,
+            players=players,
+        )
         db.session.commit()
         flash('Tee time booked successfully!', 'success')
         return redirect(url_for('member.dashboard'))
