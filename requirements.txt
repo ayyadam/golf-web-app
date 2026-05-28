@@ -4,6 +4,9 @@ Flask-Login==0.6.3
 Flask-WTF==1.2.2
 WTForms==3.2.1
 
+# API layer
+APIFlask==3.1.0
+
 # Database
 SQLAlchemy==2.0.36
 Flask-SQLAlchemy==3.1.1

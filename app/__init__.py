@@ -1,15 +1,27 @@
 import os
-from flask import Flask
+from apiflask import APIFlask
 from .extensions import db, login_manager, csrf
 from .config import config_by_name
 
 
 def create_app(config_name=None):
-    """Application factory for the Flask app."""
+    """Application factory for the Flask app.
+
+    Uses APIFlask (a Flask subclass) so the JSON API blueprint can register
+    its OpenAPI spec at /api/v1/openapi.json and Swagger UI at /api/v1/docs.
+    Existing HTML routes are unaffected — APIFlask is API-compatible with
+    plain Flask.
+    """
     if config_name is None:
         config_name = os.getenv('FLASK_ENV', 'development')
 
-    app = Flask(__name__)
+    app = APIFlask(
+        __name__,
+        title='Adam\'s Golf Club API',
+        version='1.0.0',
+        spec_path='/api/v1/openapi.json',
+        docs_path='/api/v1/docs',
+    )
     app.config.from_object(config_by_name[config_name])
 
     # Initialise extensions
@@ -27,12 +39,24 @@ def create_app(config_name=None):
     from .routes.member import member_bp
     from .routes.admin import admin_bp
     from .routes.visitor import visitor_bp
+    from .api import api_bp
 
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(member_bp, url_prefix='/member')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(visitor_bp, url_prefix='/visitor')
+    app.register_blueprint(api_bp)  # url_prefix declared on the blueprint itself
+
+    # API uses bearer tokens, not session cookies — exempt from CSRF
+    csrf.exempt(api_bp)
+
+    # APIFlask iterates over all blueprints when generating the OpenAPI spec
+    # and reads .enable_openapi on each. Legacy Flask Blueprints don't have
+    # that attribute, so we tag them as out-of-spec here.
+    for bp_name, bp in app.blueprints.items():
+        if not hasattr(bp, 'enable_openapi'):
+            bp.enable_openapi = False
 
     # Create database tables (for development; migrations used in production)
     with app.app_context():
