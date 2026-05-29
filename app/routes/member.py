@@ -8,6 +8,9 @@ from ..models import (
     Coach, CoachingTime, CoachingBooking,
     RangeTime, RangeBooking
 )
+from ..services.booking_assistant import (
+    IntentParseError, find_candidate_slots, get_intent_extractor,
+)
 from ..services.booking_service import (
     PlayerInput, create_general_booking, parse_handicap,
     validate_general_booking, validate_player_handicaps,
@@ -263,6 +266,49 @@ def book_tee_time():
         selected_date=selected_date,
         today=date.today().isoformat(),
         user_bookings=user_bookings
+    )
+
+
+@member_bp.route('/book-tee-time/assist', methods=['POST'])
+def book_tee_time_assist():
+    """Interpret a natural-language request and show matching tee-time slots.
+
+    Mirrors the JSON API's booking-assistant: the model only extracts a
+    structured intent; the member still picks and confirms a slot through the
+    normal booking form below. The model never books anything itself.
+    """
+    text = request.form.get('assist_text', '').strip()
+    if not text:
+        flash('Please type what you would like to book.', 'warning')
+        return redirect(url_for('member.book_tee_time'))
+
+    extractor = get_intent_extractor()
+    try:
+        intent = extractor.extract(text)
+    except IntentParseError:
+        flash(
+            "Sorry, I couldn't understand that. Try e.g. 'a 4-ball Saturday morning'.",
+            'danger',
+        )
+        return redirect(url_for('member.book_tee_time'))
+
+    candidates = find_candidate_slots(intent, member=current_user)
+
+    user_bookings = GeneralBooking.query.join(TeeTime).filter(
+        TeeTime.date == intent.date,
+        db.or_(
+            GeneralBooking.member_id == current_user.id,
+            GeneralBooking.players.any(BookingPlayer.player_name == current_user.full_name)
+        )
+    ).all()
+
+    return render_template(
+        'member/book_tee_time.html',
+        tee_times=candidates,
+        selected_date=intent.date.isoformat(),
+        today=date.today().isoformat(),
+        user_bookings=user_bookings,
+        assistant={'text': text, 'intent': intent, 'count': len(candidates)},
     )
 
 

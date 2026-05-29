@@ -7,6 +7,10 @@ WTForms==3.2.1
 # API layer
 APIFlask==3.1.0
 
+# Natural-language booking assistant (local LLM provider; client only — no
+# daemon needed unless BOOKING_ASSISTANT_PROVIDER=ollama is set)
+ollama==0.6.0
+
 # Database
 SQLAlchemy==2.0.36
 Flask-SQLAlchemy==3.1.1

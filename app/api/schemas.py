@@ -116,6 +116,29 @@ class BookingOut(Schema):
         return data
 
 
+# ---- Booking assistant (natural language) ----
+
+class BookingAssistantRequest(Schema):
+    text = String(
+        required=True,
+        validate=[Length(min=1, max=500), safe_text],
+        metadata={'description': 'Natural-language tee-time request, e.g. "a 4-ball Saturday morning"'},
+    )
+
+
+class BookingIntentOut(Schema):
+    """The structured intent the model extracted from the text."""
+    date = Date()
+    period = String(metadata={'description': "'morning', 'afternoon', or 'any'"})
+    group_size = Integer()
+    players = List(String())
+
+
+class BookingAssistantResponse(Schema):
+    intent = Nested(BookingIntentOut, metadata={'description': 'Parsed interpretation of the request'})
+    candidates = List(Nested(TeeTimeOut), metadata={'description': 'Bookable slots matching the intent'})
+
+
 # ---- Errors ----
 
 class ApiError(Schema):

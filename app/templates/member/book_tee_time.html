@@ -10,9 +10,37 @@
             </a>
         </div>
 
+        <!-- Natural-language assistant -->
+        <div class="card-glass p-3 mb-4">
+            <form method="POST" action="{{ url_for('member.book_tee_time_assist') }}"
+                class="d-flex align-items-end gap-2 flex-wrap">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="flex-grow-1">
+                    <label class="form-label" for="assist_text">
+                        <i class="bi bi-stars me-1 text-success"></i>Ask in plain English
+                    </label>
+                    <input type="text" class="form-control" id="assist_text" name="assist_text"
+                        placeholder="e.g. a 4-ball Saturday morning"
+                        value="{{ assistant.text if assistant else '' }}">
+                </div>
+                <button type="submit" id="assist-button" class="btn btn-agc">
+                    <i class="bi bi-search me-1"></i>Find slots
+                </button>
+            </form>
+            {% if assistant %}
+            <div id="assistant-interpretation" class="mt-3 small text-muted">
+                <i class="bi bi-info-circle me-1"></i>I understood:
+                <strong>{{ assistant.intent.group_size }}</strong> player{{ 's' if assistant.intent.group_size != 1 }},
+                <strong>{{ assistant.intent.period }}</strong> on
+                <strong>{{ assistant.intent.date.strftime('%A %d %B %Y') }}</strong>
+                — <strong>{{ assistant.count }}</strong> matching slot{{ 's' if assistant.count != 1 }}.
+            </div>
+            {% endif %}
+        </div>
+
         <!-- Date Selector -->
         <div class="card-glass p-3 mb-4">
-            <form method="GET" class="d-flex align-items-end gap-3">
+            <form method="GET" action="{{ url_for('member.book_tee_time') }}" class="d-flex align-items-end gap-3">
                 <div>
                     <label class="form-label" for="date">Select Date</label>
                     <input type="date" class="form-control" id="date" name="date" value="{{ selected_date }}"
@@ -90,7 +118,8 @@
 
         <!-- Booking form — JS will reposition this after the correct visual row -->
         <div id="bookingFormWrapper" class="col-12 booking-form-wrapper">
-            <form method="POST" id="mainBookingForm">
+            {% set gs = assistant.intent.group_size if assistant else 1 %}
+            <form method="POST" action="{{ url_for('member.book_tee_time') }}" id="mainBookingForm">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="tee_time_id" id="selectedTeeTime">
                 <div id="bookingForm" class="card-glass p-4 mt-2" style="overflow: visible;">
@@ -98,10 +127,10 @@
                     <div class="mb-3">
                         <label class="form-label" for="groupSize">Group Size</label>
                         <select class="form-select" id="groupSize" name="group_size" style="max-width: 200px;">
-                            <option value="1">1 - Single</option>
-                            <option value="2">2 - Two-ball</option>
-                            <option value="3">3 - Three-ball</option>
-                            <option value="4">4 - Four-ball</option>
+                            <option value="1" {{ 'selected' if gs == 1 }}>1 - Single</option>
+                            <option value="2" {{ 'selected' if gs == 2 }}>2 - Two-ball</option>
+                            <option value="3" {{ 'selected' if gs == 3 }}>3 - Three-ball</option>
+                            <option value="4" {{ 'selected' if gs == 4 }}>4 - Four-ball</option>
                         </select>
                     </div>
                     <div id="additionalPlayers"></div>

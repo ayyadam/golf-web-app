@@ -5,6 +5,11 @@ from flask import jsonify, make_response
 
 from ..extensions import db
 from ..models import Competition, Member, TeeTime
+from ..services.booking_assistant import (
+    IntentParseError,
+    find_candidate_slots,
+    get_intent_extractor,
+)
 from ..services.booking_service import (
     PlayerInput,
     create_general_booking,
@@ -14,6 +19,8 @@ from ..services.booking_service import (
 from . import api_bp
 from .auth import TOKEN_TTL_SECONDS, issue_token, token_auth
 from .schemas import (
+    BookingAssistantRequest,
+    BookingAssistantResponse,
     BookingOut,
     BookingRequest,
     CompetitionOut,
@@ -159,3 +166,36 @@ def book_tee_time(tee_time_id, json_data):
     )
     db.session.commit()
     return booking
+
+
+# ---- Booking assistant (natural language) ----
+
+@api_bp.post('/booking-assistant')
+@api_bp.auth_required(token_auth)
+@api_bp.input(BookingAssistantRequest)
+@api_bp.output(BookingAssistantResponse)
+@api_bp.doc(
+    summary='Interpret a natural-language tee-time request and propose slots',
+    description=(
+        'The language model only extracts a structured intent from the text — it does '
+        'not book anything. Returns the parsed intent plus bookable slots that match it; '
+        'the member then books a chosen slot via POST /tee-times/{id}/bookings.'
+    ),
+    responses={422: 'Could not interpret the request into a valid intent'},
+)
+def booking_assistant(json_data):
+    """Turn free text into a structured intent, then propose matching slots.
+
+    The model never mutates data: it only produces the intent, which is then
+    validated and matched against genuinely bookable slots by deterministic
+    code. This is the safety boundary against hallucinated/injected actions.
+    """
+    member = token_auth.current_user
+    extractor = get_intent_extractor()
+    try:
+        intent = extractor.extract(json_data['text'])
+    except IntentParseError as exc:
+        return make_response(jsonify(code='unparseable_request', message=str(exc)), 422)
+
+    candidates = find_candidate_slots(intent, member=member)
+    return {'intent': intent, 'candidates': candidates}
