@@ -149,10 +149,21 @@ class LLMIntentExtractor(ABC):
 
     @staticmethod
     def _system_prompt(today: date) -> str:
+        # An explicit calendar makes relative-date resolution ("this Saturday",
+        # "next Friday") reliable across models, rather than relying on the model
+        # to do weekday arithmetic in its head.
+        calendar = "\n".join(
+            f"{(today + timedelta(days=i)).isoformat()} {(today + timedelta(days=i)).strftime('%A')}"
+            + (" (today)" if i == 0 else "")
+            for i in range(10)
+        )
         return (
-            "You convert a golf club member's natural-language tee-time request into JSON. "
-            f"Today is {today.isoformat()} ({today.strftime('%A')}). "
-            "Resolve relative dates (today, tomorrow, 'this Saturday') to an absolute YYYY-MM-DD. "
+            "You convert a golf club member's natural-language tee-time request into JSON.\n"
+            "Resolve any relative date (today, tomorrow, 'this Saturday', 'next Friday') to an "
+            "absolute YYYY-MM-DD using this calendar:\n"
+            f"{calendar}\n"
+            "When only a weekday is named, pick the SOONEST row in the calendar whose weekday "
+            "matches exactly. Copy that row's date verbatim.\n"
             "period is 'morning' (before 12:00), 'afternoon' (12:00 or later), or 'any'. "
             "group_size is the number of players from 1 to 4. "
             "players is the list of named playing partners mentioned, excluding the member. "
