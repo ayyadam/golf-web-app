@@ -181,7 +181,10 @@ def book_tee_time(tee_time_id, json_data):
         'not book anything. Returns the parsed intent plus bookable slots that match it; '
         'the member then books a chosen slot via POST /tee-times/{id}/bookings.'
     ),
-    responses={422: 'Could not interpret the request into a valid intent'},
+    responses={
+        400: 'Malformed request body',
+        422: 'Could not interpret the request into a valid intent',
+    },
 )
 def booking_assistant(json_data):
     """Turn free text into a structured intent, then propose matching slots.
