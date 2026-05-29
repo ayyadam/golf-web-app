@@ -31,7 +31,10 @@
             <div id="assistant-interpretation" class="mt-3 small text-muted">
                 <i class="bi bi-info-circle me-1"></i>I understood:
                 <strong>{{ assistant.intent.group_size }}</strong> player{{ 's' if assistant.intent.group_size != 1 }},
-                <strong>{{ assistant.intent.period }}</strong> on
+                <strong>{{ assistant.intent.period }}</strong>
+                {%- if assistant.intent.not_before %} from <strong>{{ assistant.intent.not_before.strftime('%H:%M') }}</strong>{% endif %}
+                {%- if assistant.intent.not_after %} until <strong>{{ assistant.intent.not_after.strftime('%H:%M') }}</strong>{% endif %}
+                on
                 <strong>{{ assistant.intent.date.strftime('%A %d %B %Y') }}</strong>
                 — <strong>{{ assistant.count }}</strong> matching slot{{ 's' if assistant.count != 1 }}.
             </div>
