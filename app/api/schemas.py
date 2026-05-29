@@ -132,6 +132,14 @@ class BookingIntentOut(Schema):
     period = String(metadata={'description': "'morning', 'afternoon', or 'any'"})
     group_size = Integer()
     players = List(String())
+    not_before = Time(
+        format='%H:%M', allow_none=True,
+        metadata={'description': 'earliest acceptable tee time (HH:MM), or null'},
+    )
+    not_after = Time(
+        format='%H:%M', allow_none=True,
+        metadata={'description': 'latest acceptable tee time (HH:MM), or null'},
+    )
 
 
 class BookingAssistantResponse(Schema):

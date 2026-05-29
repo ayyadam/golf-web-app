@@ -52,6 +52,52 @@ class TestStubExtractor:
         assert 1 <= intent.group_size <= 4
         assert intent.period in ("morning", "afternoon", "any")
 
+    def test_parses_not_before_from(self):
+        intent = StubIntentExtractor().extract("a round from 9am", today=date(2026, 6, 1))
+        assert intent.not_before == time(9, 0)
+        assert intent.not_after is None
+
+    def test_parses_not_after_by(self):
+        intent = StubIntentExtractor().extract("morning by 11am", today=date(2026, 6, 1))
+        assert intent.period == "morning"
+        assert intent.not_after == time(11, 0)
+        assert intent.not_before is None
+
+    def test_parses_before_noon(self):
+        intent = StubIntentExtractor().extract("a game before noon", today=date(2026, 6, 1))
+        assert intent.not_after == time(12, 0)
+
+    def test_parses_between_range(self):
+        intent = StubIntentExtractor().extract("something between 9 and 11", today=date(2026, 6, 1))
+        assert intent.not_before == time(9, 0)
+        assert intent.not_after == time(11, 0)
+
+    def test_parses_at_exact_time_as_degenerate_window(self):
+        intent = StubIntentExtractor().extract("tee off at 10am", today=date(2026, 6, 1))
+        assert intent.not_before == time(10, 0)
+        assert intent.not_after == time(10, 0)
+
+    def test_parses_pm_alongside_period(self):
+        intent = StubIntentExtractor().extract("afternoon from 2pm", today=date(2026, 6, 1))
+        assert intent.period == "afternoon"
+        assert intent.not_before == time(14, 0)
+
+    def test_no_time_phrase_leaves_bounds_unset(self):
+        intent = StubIntentExtractor().extract("a 4-ball saturday morning", today=date(2026, 6, 1))
+        assert intent.not_before is None
+        assert intent.not_after is None
+
+
+# ---------- intent coercion (LLM string path) ----------
+
+class TestCoerceIntent:
+    def test_parses_hhmm_strings_and_drops_bad_time(self):
+        from app.services.booking_assistant import _coerce_intent
+
+        intent = _coerce_intent({"date": "2026-06-02", "not_before": "09:00", "not_after": "garbage"})
+        assert intent.not_before == time(9, 0)
+        assert intent.not_after is None   # malformed bound dropped, not fatal
+
 
 # ---------- provider registry ----------
 
@@ -128,6 +174,32 @@ class TestCandidateMatching:
         assert len(find_candidate_slots(
             BookingIntent(date=d, period="any", group_size=2), limit=5,
         )) == 5
+
+    def test_applies_not_before_bound(self, db):
+        d = date.today() + timedelta(days=3)
+        _db.session.add_all([
+            TeeTime(date=d, time=time(8, 0), max_players=4, is_available=True),
+            TeeTime(date=d, time=time(9, 0), max_players=4, is_available=True),
+            TeeTime(date=d, time=time(10, 0), max_players=4, is_available=True),
+        ])
+        _db.session.commit()
+        slots = find_candidate_slots(
+            BookingIntent(date=d, period="morning", group_size=1, not_before=time(9, 0)),
+        )
+        assert [s.time for s in slots] == [time(9, 0), time(10, 0)]  # 08:00 excluded
+
+    def test_applies_not_after_bound_inclusive(self, db):
+        d = date.today() + timedelta(days=3)
+        _db.session.add_all([
+            TeeTime(date=d, time=time(9, 0), max_players=4, is_available=True),
+            TeeTime(date=d, time=time(11, 0), max_players=4, is_available=True),
+            TeeTime(date=d, time=time(13, 0), max_players=4, is_available=True),
+        ])
+        _db.session.commit()
+        slots = find_candidate_slots(
+            BookingIntent(date=d, period="any", group_size=1, not_after=time(11, 0)),
+        )
+        assert [s.time for s in slots] == [time(9, 0), time(11, 0)]  # 13:00 out, 11:00 kept
 
 
 # ---------- API endpoint (wired to the stub) ----------
