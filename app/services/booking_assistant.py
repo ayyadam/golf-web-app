@@ -232,12 +232,15 @@ def _matches_period(slot_time: time, period: str) -> bool:
     return True
 
 
-def find_candidate_slots(intent: BookingIntent, member=None, limit: int = 6):
-    """Return bookable tee-time slots matching the intent.
+def find_candidate_slots(intent: BookingIntent, member=None, limit: Optional[int] = None):
+    """Return bookable tee-time slots matching the intent, earliest first.
 
     Reuses the same availability rules as the member booking page (past-time
-    and competition-day filtering) so proposed slots are genuinely bookable.
-    When a member is given, slots they are already booked on are excluded.
+    and competition-day filtering) so proposed slots are genuinely bookable,
+    and preserves its earliest-first ordering. When a member is given, slots
+    they are already booked on are excluded. With no limit, every matching
+    slot is returned so the member sees the full availability they asked for
+    rather than a silently truncated subset; pass a limit only to cap the list.
     """
     from ..routes.member import _filter_available_tee_times
 
@@ -263,4 +266,4 @@ def find_candidate_slots(intent: BookingIntent, member=None, limit: int = 6):
         }
         matching = [s for s in matching if s.id not in already_booked]
 
-    return matching[:limit]
+    return matching if limit is None else matching[:limit]

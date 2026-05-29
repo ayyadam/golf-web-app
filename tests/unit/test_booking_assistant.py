@@ -109,6 +109,26 @@ class TestCandidateMatching:
         assert time(10, 0) in times      # free slot proposed
         assert time(9, 0) not in times   # already booked -> excluded
 
+    def test_returns_all_matching_slots_uncapped(self, db):
+        # F-007: the assistant must not silently truncate availability. With far
+        # more matching slots than the old hard cap of 6, every one is returned,
+        # earliest first, so the member can see and pick any of them.
+        d = date.today() + timedelta(days=3)
+        slot_times = [time(h, 0) for h in range(7, 19)]  # 12 slots > old cap of 6
+        _db.session.add_all([
+            TeeTime(date=d, time=t, max_players=4, is_available=True) for t in slot_times
+        ])
+        _db.session.commit()
+
+        slots = find_candidate_slots(BookingIntent(date=d, period="any", group_size=2))
+        assert len(slots) == len(slot_times)               # nothing truncated
+        assert [s.time for s in slots] == sorted(slot_times)  # earliest first
+
+        # An explicit limit still caps, for any caller that wants a shortlist.
+        assert len(find_candidate_slots(
+            BookingIntent(date=d, period="any", group_size=2), limit=5,
+        )) == 5
+
 
 # ---------- API endpoint (wired to the stub) ----------
 
