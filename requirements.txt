@@ -23,6 +23,9 @@ bcrypt==4.2.1
 # Production server
 gunicorn==23.0.0
 
+# Observability (Prometheus metrics endpoint at /metrics)
+prometheus-flask-exporter==0.23.1
+
 # Email (future)
 # Flask-Mail==0.10.0
 
