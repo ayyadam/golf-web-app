@@ -1,6 +1,6 @@
 import os
 from apiflask import APIFlask
-from .extensions import db, login_manager, csrf
+from .extensions import db, login_manager, csrf, metrics
 from .config import config_by_name
 
 
@@ -28,6 +28,8 @@ def create_app(config_name=None):
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
+    metrics.init_app(app)
+    metrics.info('flask_app_info', 'Application info', version='1.0.0')
 
     # Configure login manager
     login_manager.login_view = 'auth.login'
