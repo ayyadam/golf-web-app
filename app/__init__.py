@@ -60,6 +60,19 @@ def create_app(config_name=None):
         if not hasattr(bp, 'enable_openapi'):
             bp.enable_openapi = False
 
+    # /metrics is exposed by prometheus-flask-exporter for the assurance
+    # harness's observability stack (testing-system/observability/). It is
+    # registered directly on the app (not via a blueprint), so the
+    # blueprint-level toggle above doesn't reach it; APIFlask therefore
+    # discovers it and emits an OpenAPI entry declaring application/json,
+    # while the endpoint actually serves text/plain (prometheus exposition
+    # format). The spec_processor below removes it so the published v1 spec
+    # accurately describes ONLY the v1 JSON API, not operational endpoints.
+    @app.spec_processor
+    def hide_operational_endpoints(spec):
+        spec.setdefault('paths', {}).pop('/metrics', None)
+        return spec
+
     # Create database tables (for development; migrations used in production)
     with app.app_context():
         db.create_all()
