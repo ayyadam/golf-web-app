@@ -29,3 +29,22 @@ def test_metrics_endpoint_exposes_request_counter(client):
     assert 'flask_http_request_duration_seconds_count' in body
     # And the app-info gauge we registered in create_app().
     assert 'flask_app_info' in body
+
+
+def test_metrics_endpoint_not_in_openapi_spec(client):
+    """The /metrics endpoint is operational, not part of the v1 API contract.
+
+    APIFlask auto-discovers app-level routes when building the OpenAPI spec
+    and (before the spec_processor fix) emitted /metrics with the default
+    application/json content type. The actual endpoint serves text/plain,
+    so the spec was lying — caught by the testing-system contract gate.
+    The spec_processor in create_app strips /metrics from the published
+    spec so the v1 contract accurately describes only the v1 JSON API.
+    """
+    resp = client.get('/api/v1/openapi.json')
+    assert resp.status_code == 200
+    spec = resp.get_json()
+    assert '/metrics' not in spec.get('paths', {}), (
+        "/metrics leaked into the v1 OpenAPI spec — see F-010 / "
+        "hide_operational_endpoints in app/__init__.py"
+    )
