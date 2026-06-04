@@ -61,6 +61,7 @@ def issue_access_token(json_data):
 # ---- Tee times ----
 
 @api_bp.get('/tee-times')
+@api_bp.auth_required(token_auth)
 @api_bp.input(TeeTimeQuery, location='query')
 @api_bp.output(TeeTimeOut(many=True))
 @api_bp.doc(summary='List available tee times (optionally filtered by date)')
@@ -84,6 +85,7 @@ def list_tee_times(query_data):
 
 
 @api_bp.get('/tee-times/<int:tee_time_id>')
+@api_bp.auth_required(token_auth)
 @api_bp.output(TeeTimeOut)
 @api_bp.doc(summary='Get a single tee time by id', responses={404: 'Tee time not found'})
 def get_tee_time(tee_time_id):
@@ -94,6 +96,7 @@ def get_tee_time(tee_time_id):
 # ---- Competitions ----
 
 @api_bp.get('/competitions')
+@api_bp.auth_required(token_auth)
 @api_bp.output(CompetitionOut(many=True))
 @api_bp.doc(summary='List upcoming competitions')
 def list_competitions():
