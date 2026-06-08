@@ -2,7 +2,7 @@
 -r requirements.txt
 
 # Testing
-pytest==8.3.4
+pytest==9.0.3  # security: CVE-2025-71176 (fixed 9.0.3)
 pytest-cov==6.0.0
 pytest-html==4.1.1
 
