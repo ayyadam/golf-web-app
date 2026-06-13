@@ -91,10 +91,26 @@ jobs:
         if: always()
         run: docker compose down -v
 
+  # Shift-left assurance (B19): call the external assurance-harness against THIS
+  # commit's code, so every change is independently assured before an image is
+  # published. The harness is pinned to a ref so its evolution can't surprise-
+  # break this pipeline. sut_ref is the PR head on PRs, the pushed SHA otherwise.
+  assurance:
+    name: Assurance (harness)
+    needs: [unit-test, smoke-test]
+    permissions:
+      contents: read
+      security-events: write
+    uses: ayyadam/assurance-harness/.github/workflows/assurance.yml@feat/b19-shift-left
+    with:
+      harness_ref: feat/b19-shift-left
+      sut_ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
   build-and-publish:
     name: Build & Publish Image
     runs-on: ubuntu-latest
-    needs: [unit-test, smoke-test]
+    # Gated on assurance: no image is published unless the harness passes.
+    needs: [unit-test, smoke-test, assurance]
     permissions:
       contents: write
       packages: write
