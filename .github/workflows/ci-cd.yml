@@ -106,6 +106,18 @@ jobs:
       harness_ref: v1
       sut_ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
+  # Single, stable gate context for branch protection (B19): succeeds only if the
+  # whole assurance workflow passed. Requiring THIS one context — rather than each
+  # of the harness's nested job names — decouples the required check from the
+  # harness's internal job list, so adding/renaming a harness job never breaks
+  # this repo's branch protection.
+  assured:
+    name: Assured
+    needs: [assurance]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Assurance passed — this change is assured."
+
   build-and-publish:
     name: Build & Publish Image
     runs-on: ubuntu-latest
