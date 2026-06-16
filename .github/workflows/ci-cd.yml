@@ -101,9 +101,9 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: ayyadam/assurance-harness/.github/workflows/assurance.yml@v1
+    uses: ayyadam/assurance-harness/.github/workflows/assurance.yml@v1.1.0
     with:
-      harness_ref: v1
+      harness_ref: v1.1.0
       sut_ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
   # Single, stable gate context for branch protection (B19): succeeds only if the
