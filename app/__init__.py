@@ -60,17 +60,46 @@ def create_app(config_name=None):
         if not hasattr(bp, 'enable_openapi'):
             bp.enable_openapi = False
 
-    # /metrics is exposed by prometheus-flask-exporter for the assurance
-    # harness's observability stack (testing-system/observability/). It is
-    # registered directly on the app (not via a blueprint), so the
-    # blueprint-level toggle above doesn't reach it; APIFlask therefore
-    # discovers it and emits an OpenAPI entry declaring application/json,
-    # while the endpoint actually serves text/plain (prometheus exposition
-    # format). The spec_processor below removes it so the published v1 spec
-    # accurately describes ONLY the v1 JSON API, not operational endpoints.
+    # APIFlask supports a single spec_processor callback (registering a second
+    # overwrites the first), so this one finalises the generated spec in two
+    # passes: it hides operational endpoints, then declares OpenAPI links that
+    # describe the referential relationships between operations.
     @app.spec_processor
-    def hide_operational_endpoints(spec):
+    def finalise_openapi_spec(spec):
+        # 1. /metrics is exposed by prometheus-flask-exporter for the assurance
+        # harness's observability stack (testing-system/observability/). It is
+        # registered directly on the app (not via a blueprint), so the
+        # blueprint-level toggle above doesn't reach it; APIFlask therefore
+        # discovers it and emits an OpenAPI entry declaring application/json,
+        # while the endpoint actually serves text/plain (prometheus exposition
+        # format). Remove it so the published v1 spec accurately describes ONLY
+        # the v1 JSON API, not operational endpoints.
         spec.setdefault('paths', {}).pop('/metrics', None)
+
+        # 2. OpenAPI links: declare that an id from the GET /tee-times list feeds
+        # the operations parameterised by {tee_time_id}. This makes the
+        # referential contract explicit in the spec itself (rather than only
+        # known to clients), and lets spec-driven tools — e.g. Schemathesis'
+        # stateful phase — chain list -> read/book without out-of-band knowledge
+        # of how to obtain a valid id. operationRef (a JSON pointer to the
+        # operation) is used because APIFlask does not emit operationIds.
+        list_op = spec['paths'].get('/api/v1/tee-times', {}).get('get')
+        if list_op is not None:
+            tee_time_id = '$response.body#/0/id'  # first id from the returned list
+            list_op.setdefault('responses', {}).setdefault('200', {})['links'] = {
+                'GetTeeTimeById': {
+                    'operationRef': '#/paths/~1api~1v1~1tee-times~1{tee_time_id}/get',
+                    'parameters': {'tee_time_id': tee_time_id},
+                    'description': 'Read a single tee time using an id from this list.',
+                },
+                'BookTeeTime': {
+                    'operationRef': (
+                        '#/paths/~1api~1v1~1tee-times~1{tee_time_id}~1bookings/post'
+                    ),
+                    'parameters': {'tee_time_id': tee_time_id},
+                    'description': 'Book a tee time using an id from this list.',
+                },
+            }
         return spec
 
     # Create database tables (for development; migrations used in production)
