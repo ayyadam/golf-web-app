@@ -368,6 +368,26 @@ class TestOpenApiArtifacts:
                 f"got security={op.get('security')!r}"
             )
 
+    def test_openapi_spec_declares_referential_links(self, client):
+        # The GET /tee-times list response declares OpenAPI links describing how
+        # an id from the list feeds the {tee_time_id}-parameterised read and
+        # book operations. This makes the referential contract explicit in the
+        # spec (so spec-driven tools — e.g. Schemathesis' stateful phase — can
+        # chain list -> read/book) rather than relying on out-of-band knowledge.
+        resp = client.get('/api/v1/openapi.json')
+        spec = resp.get_json()
+        links = spec['paths']['/api/v1/tee-times']['get']['responses']['200'].get('links')
+        assert links, 'GET /tee-times 200 response should declare OpenAPI links'
+
+        expected = {
+            'GetTeeTimeById': '#/paths/~1api~1v1~1tee-times~1{tee_time_id}/get',
+            'BookTeeTime': '#/paths/~1api~1v1~1tee-times~1{tee_time_id}~1bookings/post',
+        }
+        for name, operation_ref in expected.items():
+            assert name in links, f'missing link {name}'
+            assert links[name]['operationRef'] == operation_ref
+            assert links[name]['parameters'] == {'tee_time_id': '$response.body#/0/id'}
+
     def test_swagger_ui_reachable(self, client):
         resp = client.get('/api/v1/docs')
         assert resp.status_code == 200
